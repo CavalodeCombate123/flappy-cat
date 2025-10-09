@@ -1,8 +1,8 @@
-const CACHE_NAME = 'gatinho-flappy-v1';
+const CACHE_NAME = 'flappy-cat-cache-v2';
 // Lista de arquivos que o Service Worker vai guardar (cache)
 const urlsToCache = [
   '/',
-  'jogogatinho.html',
+  'index.html',
   'pngwing.com.png',
   'world.png',
   'greg.png',
