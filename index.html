@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Gatinho Flappy - Versão Final Otimizada Mobile</title>
+<link rel="manifest" href="manifest.json">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+/* ---------------------------- Estilos Gerais Otimizados ---------------------------- */
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    background: #f7f7f7;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* Container do Jogo: Usa unidades de viewport para ser totalmente responsivo */
+#game-container {
+    position: relative;
+    /* 🛑 NOVO: Maximizamos o uso da tela no celular */
+    width: 95vw; 
+    height: 95vh; 
+    /* Garante que o jogo não fique muito grande em telas horizontais (PC/Tablets) */
+    max-width: 480px; 
+    max-height: 640px; 
+    margin: auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    border-radius: 8px;
+    align-self: center; 
+}
+
+/* Canvas do Jogo e Confetti */
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+    /* Garante que o canvas não tenha scroll ou zoom indesejado */
+    touch-action: none;
+}
+
+/* Overlay Tela Inicial e Game Over: Usa flexbox para centralizar tudo */
+.screen-overlay {
+    position: absolute;
+    top:0; left:0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85); 
+    color: white;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-radius: 8px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.4s;
+    z-index: 10;
+}
+
+.screen-overlay.active {
+    pointer-events: auto;
+    opacity: 1;
+}
+
+.screen-overlay h1 {
+    font-size: clamp(1.8rem,8vw,3rem); 
+    color: #ffcc00;
+    text-shadow: 2px 2px 4px #000;
+    margin-bottom: 5px;
+}
+
+.screen-overlay p {
+    font-size: clamp(1rem,4vw,1.2rem);
+    margin: 5px 0 20px 0;
+}
+
+/* Estilo dos botões de Nível */
+#level-select-screen .level-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px; 
+    max-width: 90%;
+    margin-top: 20px;
+}
+
+#level-select-screen button,
+.screen-overlay button {
+    background: #ff99aa;
+    color: #3d2b27;
+    border: 3px solid #3d2b27;
+    padding: 15px 15px;
+    font-size: clamp(1rem,4vw,1.4rem);
+    cursor: pointer;
+    border-radius: 10px;
+    transition: 0.2s;
+    width: 90%; 
+    max-width: 200px; 
+    margin-top: 10px; 
+}
+
+#level-select-screen button:disabled {
+    background: #555;
+    color: #ccc;
+    border-color: #333;
+    cursor: not-allowed;
+}
+
+
+/* Placar */
+#score-display {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: clamp(1.2rem,5vw,1.8rem); 
+    font-weight: bold;
+    color: #3d2b27;
+    text-shadow: 2px 2px 0 white;
+    z-index: 5;
+    padding: 5px 10px;
+    border-radius: 5px;
+    background: rgba(255,255,255,0.7);
+}
+
+/* Mensagem de Nível Concluído (usada como um container de vitória agora) */
+#level-completed-message {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95); 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 15;
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+    border-radius: 8px;
+    padding: 20px; 
+    box-sizing: border-box;
+}
+#level-completed-message.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+#victory-text {
+    font-size: clamp(1.1rem, 4vw, 1.8rem); 
+    font-weight: bold;
+    color: #00ff7f; 
+    text-shadow: 2px 2px 4px #000;
+    margin-bottom: 10px;
+    white-space: pre-wrap; 
+    max-height: 60vh; 
+    overflow-y: auto; 
+    padding: 10px;
+    line-height: 1.4;
+}
+
+/* Estilo para a imagem de vitória */
+#victory-cat {
+    width: clamp(100px, 30vw, 150px);
+    height: auto;
+    margin-bottom: 20px;
+    image-rendering: pixelated; 
+    display: none; 
+}
+
+/* Estilo pixelado para o botão de selecionar nível na tela de vitória */
+#level-completed-message button {
+    background: #ffcc00; 
+    color: #3d2b27;
+    border: 5px solid #000000; 
+    border-radius: 0; 
+    padding: 18px 25px; 
+    font-size: clamp(1.1rem,4.5vw,1.6rem); 
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 4px 4px 0px 0px rgba(0,0,0,0.75); 
+    transition: background-color 0.1s ease, box-shadow 0.1s ease;
+    margin-top: 20px; 
+}
+
+#level-completed-message button:hover {
+    background-color: #ff9900; 
+    box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.75); 
+    transform: translate(2px, 2px); 
+}
+</style>
+</head>
+<body>
+<div id="game-container">
+    <canvas id="game" width="480" height="640"></canvas>
+    <canvas id="confetti" width="480" height="640"></canvas>
+
+    <div id="score-display">Pontos: 0</div>
+
+    <div id="start-screen" class="screen-overlay active">
+        <h1>Gatinho Flappy 🐾</h1>
+        <p>Escolha o seu Nível de Desafio!</p>
+        <button onclick="showLevelSelect()">Começar</button>
+    </div>
+
+    <div id="level-select-screen" class="screen-overlay">
+        <h1>Escolha a Fase</h1>
+        <p>Complete a fase atual para desbloquear a próxima!</p>
+        <div class="level-list" id="level-list">
+            </div>
+    </div>
+
+    <div id="game-over-screen" class="screen-overlay">
+        <h1>GAME OVER 😿</h1>
+        <p id="final-score">Pontuação Final: 0</p>
+        <button onclick="showLevelSelect()">Voltar para a Seleção</button>
+    </div>
+
+    <div id="level-completed-message">
+        <div id="victory-text"></div>
+        <img id="victory-cat" src="greg.png"> 
+        <button onclick="showLevelSelect()">Voltar para a Seleção de Níveis</button>
+    </div>
+</div>
+
+<script>
+/* ---------------------------- Variáveis do Canvas e Elementos ---------------------------- */
+const gameContainer = document.getElementById('game-container');
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+const confCanvas = document.getElementById('confetti');
+const confCtx = confCanvas.getContext('2d');
+
+const startScreen = document.getElementById('start-screen');
+const levelSelectScreen = document.getElementById('level-select-screen');
+const gameOverScreen = document.getElementById('game-over-screen');
+const scoreDisplay = document.getElementById('score-display');
+const finalScoreText = document.getElementById('final-score');
+
+// Elementos da Tela de Vitória
+const levelCompletedScreen = document.getElementById('level-completed-message');
+const victoryText = document.getElementById('victory-text');
+const victoryCatImg = document.getElementById('victory-cat'); 
+const levelListContainer = document.getElementById('level-list');
+
+
+/* ---------------------------- Configurações Globais e de Jogo ---------------------------- */
+const pipeWidth = 70; 
+const pipeInterval = 120; 
+const initialDelay = 80; 
+const pointsToCompleteLevel = 10; 
+
+let gameSpeed = 0; 
+const GAME_TICK_RATE = 1; 
+
+let animationId = null;
+let pipeFrame = 0; 
+let score = 0;
+let pipes = [];
+let gameRunning = false;
+let gameOver = false;
+let currentLevel = 0; 
+
+let gravity = 0;
+let jumpForce = 0;
+let pipeSpeed = 0;
+let minGap = 0;
+let maxGap = 0; 
+
+
+/* ---------------------------- DIFICULDADE FIXA E MENSAGENS ---------------------------- */
+const EASY_MODE_SETTINGS = { 
+    gravity: 0.3, 
+    jump: -7.0, 
+    speed: 2.25, 
+    gap: 200, 
+    maxGap: 280 
+};
+
+// MENSAGEM FINAL DE VITÓRIA
+const FINAL_VICTORY_MESSAGE = `
+Parabéns, você completou o jogo!
+Esse jogo foi algo inesperado e que surgiu na minha cabeça do nada... E por isso foi algo que eu considerei muito importante, já que eu nunca tinha feito algo assim... Mas, aproveitei que estava estudando e tentei fazer... Então espero que tenha gostado, mesmo que só um pouco.
+
+Layane, eu te desejo infinitas felicidades e um feliz aniversário
+Desejo que todas as coisas boas desse mundo, venham em sua direção
+Espero que você sempre seja essa pessoa incrivel maravilhosa e charmosa
+Você sempre foi e sempre vai ser uma pessoa muito importante na vida de todos nós
+E eu não poderia ser mais grato por ter conhecido alguém como você
+Sua felicidade é a alegria de todos, incluindo a minha
+Meu maior desejo é que você seja feliz em tudo o que você se proponha a fazer
+Pois é assim que eu sempre quis te ver.
+`;
+
+const LEVEL_SETTINGS = [
+    { name: "Gatinhos", message: "Uau, você é boa nisso ein?", ...EASY_MODE_SETTINGS }, 
+    { name: "Parque", message: "Vai Corinthians... Quer dizer, VAI GATINHOS!", ...EASY_MODE_SETTINGS }, 
+    { name: "Piscina", message: "Você tá trapaceando...", ...EASY_MODE_SETTINGS }, 
+    { name: "Caixa de Areia", message: "Mas já? Tá muito fácil!", ...EASY_MODE_SETTINGS }, 
+    { name: "Greg", message: "Você é incrível! Veja a mensagem final.", ...EASY_MODE_SETTINGS } 
+];
+
+
+/* ---------------------------- Gatinho e Imagens ---------------------------- */
+const cat = { x: 50, y: canvas.height/2, width: 55, height: 55, velocity:0 }; 
+const catImg = new Image();
+catImg.src = 'pngwing.com.png'; 
+
+const bgImg = new Image();
+bgImg.src = 'world.png'; 
+let bgX = 0; 
+let bgSpeed = 0.5; 
+
+// Objeto Image para a tela de vitória
+const victoryCatImgSource = new Image();
+victoryCatImgSource.src = 'greg.png'; 
+
+// ATUALIZAÇÃO DA CONTAGEM DE ASSETS: Gato (1) + Fundo (1) + Vitória (1) = 3
+let totalAssets = 3; 
+let unlockedLevel = 1;
+
+
+/* ---------------------------- TELA DE NÍVEL ---------------------------- */
+function renderLevelSelect() {
+    levelListContainer.innerHTML = '';
+    
+    LEVEL_SETTINGS.forEach((level, index) => {
+        const levelNumber = index + 1;
+        const button = document.createElement('button');
+        button.textContent = `Nível ${levelNumber}: ${level.name}`;
+        button.onclick = () => selectLevel(levelNumber);
+        
+        if (levelNumber > unlockedLevel) {
+            button.disabled = true;
+            button.textContent += ' (Bloqueado)';
+        }
+        levelListContainer.appendChild(button);
+    });
+}
+
+function showLevelSelect() {
+    startScreen.classList.remove('active');
+    gameOverScreen.classList.remove('active');
+    levelCompletedScreen.classList.remove('active'); 
+    levelSelectScreen.classList.add('active');
+    renderLevelSelect();
+    
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+}
+
+function selectLevel(levelNumber) {
+    currentLevel = levelNumber;
+    const settings = LEVEL_SETTINGS[levelNumber - 1];
+    
+    gravity = settings.gravity;
+    jumpForce = settings.jump;
+    pipeSpeed = settings.speed;
+    minGap = settings.gap;
+    maxGap = settings.maxGap; 
+    
+    startGame();
+}
+
+
+/* ---------------------------- Funções Auxiliares ---------------------------- */
+function handleJump() {
+    if(!gameRunning) return;
+    cat.velocity = jumpForce; 
+}
+
+/* Eventos de controle */
+document.addEventListener('keydown', e => { 
+    if (gameRunning && (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W')) {
+        e.preventDefault();
+        handleJump(); 
+    }
+});
+canvas.addEventListener('mousedown', () => { 
+    if(gameRunning) handleJump(); 
+});
+canvas.addEventListener('touchstart', e => { 
+    if(gameRunning) { 
+        e.preventDefault(); 
+        handleJump(); 
+    } 
+}, {passive:false});
+
+
+/* ---------------------------- Estado do Jogo ---------------------------- */
+function startGame() {
+    levelSelectScreen.classList.remove('active');
+    gameOverScreen.classList.remove('active');
+    
+    resetGameData();
+    gameRunning = true;
+    gameOver = false;
+    draw();
+}
+
+function endLevel() {
+    gameRunning = false;
+    spawnConfetti();
+    drawConfetti(); 
+    
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+
+    const settings = LEVEL_SETTINGS[currentLevel - 1];
+    
+    // Lógica para mostrar/esconder a imagem de vitória
+    const isFinalLevel = currentLevel === LEVEL_SETTINGS.length;
+    victoryCatImg.style.display = isFinalLevel ? 'none' : 'block';
+
+    if (!isFinalLevel) { // Níveis 1 a 4
+        unlockedLevel = Math.max(unlockedLevel, currentLevel + 1);
+        
+        // Mensagem de nível normal concluído
+        victoryText.textContent = settings.message;
+        victoryText.style.color = '#00ff7f'; 
+        victoryText.style.fontWeight = 'bold';
+        victoryText.style.textShadow = '2px 2px 4px #000';
+        
+        levelCompletedScreen.classList.add('active');
+        
+    } else {
+        // MENSAGEM FINAL PARA O NÍVEL MÁXIMO (Nível 5)
+        victoryText.textContent = FINAL_VICTORY_MESSAGE; 
+        victoryText.style.color = '#fff'; 
+        victoryText.style.fontWeight = 'normal';
+        victoryText.style.textShadow = 'none';
+
+        levelCompletedScreen.classList.add('active');
+    }
+}
+
+function endGame() {
+    gameRunning = false;
+    gameOver = true;
+    finalScoreText.textContent = `Pontuação Final: ${score} (Nível ${currentLevel})`;
+    gameOverScreen.classList.add('active');
+    spawnConfetti();
+    drawConfetti();
+    
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
+}
+
+function resetGameData() {
+    cat.y = canvas.height/2;
+    cat.velocity = 0;
+    pipes = [];
+    score = 0;
+    
+    pipeFrame = 0; 
+    gameSpeed = 0; 
+    
+    bgX = 0;
+    
+    scoreDisplay.textContent = `Pontos: 0`;
+}
+
+
+/* ---------------------------- Geração de Canos ---------------------------- */
+function spawnPipe() {
+    const currentGap = Math.random() * (maxGap - minGap) + minGap; 
+    
+    const safeZoneTop = 50; 
+    const safeZoneBottom = canvas.height - 50 - currentGap; 
+
+    const topHeight = Math.random() * (safeZoneBottom - safeZoneTop) + safeZoneTop;
+
+    pipes.push({
+        x: canvas.width,
+        top: topHeight,
+        gap: currentGap,
+        passed:false
+    });
+}
+
+
+/* ---------------------------- Desenho ---------------------------- */
+
+// FUNÇÃO DE DESENHO DO FUNDO ROLANTE
+function drawBackground() {
+    if (!bgImg.complete || bgImg.naturalWidth === 0) {
+        // Usa a cor de fundo sólida se a imagem não carregar (muito comum em mobile)
+        ctx.fillStyle = '#ADD8E6'; 
+        ctx.fillRect(0, 0, canvas.width, canvas.height); 
+        return;
+    }
+
+    let drawWidth = canvas.width;
+    let drawHeight = drawWidth * (bgImg.naturalHeight / bgImg.naturalWidth);
+    
+    if (drawHeight < canvas.height) {
+        drawHeight = canvas.height;
+        drawWidth = drawHeight * (bgImg.naturalWidth / bgImg.naturalHeight);
+    }
+    
+    const offsetY = 0; 
+    bgX -= pipeSpeed * (bgSpeed / 2.25); 
+    
+    if (bgX <= -drawWidth) {
+        bgX = 0;
+    }
+    
+    ctx.drawImage(bgImg, bgX, offsetY, drawWidth, drawHeight);
+    ctx.drawImage(bgImg, bgX + drawWidth, offsetY, drawWidth, drawHeight);
+}
+
+
+function drawCat() {
+    ctx.save();
+    ctx.translate(cat.x + cat.width/2, cat.y + cat.height/2);
+    ctx.rotate(Math.min(Math.PI/2, Math.max(-Math.PI/4, cat.velocity * 0.05)));
+    ctx.drawImage(catImg, -cat.width/2, -cat.height/2, cat.width, cat.height);
+    ctx.restore();
+}
+
+// FUNÇÃO DE DESENHO DOS CANOS SIMPLIFICADA (Preto Sólido + Tampa Branca)
+function drawPipes() {
+    const PIPE_BODY_COLOR = '#1a1a1a'; 
+    const PAW_CAP_COLOR = '#FFFFFF';   
+    const PAW_CAP_HEIGHT = 20;         
+    
+    pipes.forEach(pipe => {
+        const topHeight = pipe.top;
+        const bottomY = pipe.top + pipe.gap;
+        const bottomHeight = canvas.height - bottomY - 20;
+
+        // --- CANO SUPERIOR ---
+        ctx.fillStyle = PIPE_BODY_COLOR;
+        ctx.fillRect(pipe.x, 0, pipeWidth, topHeight); 
+        ctx.fillStyle = PAW_CAP_COLOR;
+        ctx.fillRect(pipe.x, topHeight - PAW_CAP_HEIGHT, pipeWidth, PAW_CAP_HEIGHT);
+        
+
+        // --- CANO INFERIOR ---
+        ctx.fillStyle = PIPE_BODY_COLOR;
+        ctx.fillRect(pipe.x, bottomY, pipeWidth, bottomHeight);
+        ctx.fillStyle = PAW_CAP_COLOR;
+        ctx.fillRect(pipe.x, bottomY, pipeWidth, PAW_CAP_HEIGHT);
+    });
+}
+
+/* ---------------------------- Colisões ---------------------------- */
+function checkCollision() {
+    // 🛑 Garante que a colisão com o chão e teto respeite o novo tamanho do canvas
+    if(cat.y + cat.height > canvas.height-20 || cat.y < 0) return true;
+    
+    for(const pipe of pipes){
+        if(cat.x+cat.width > pipe.x && cat.x < pipe.x + pipeWidth){
+            if(cat.y < pipe.top || cat.y + cat.height > pipe.top+pipe.gap) return true;
+        }
+    }
+    return false;
+}
+
+/* ---------------------------- Lógica do Jogo ---------------------------- */
+function updateGameLogic() {
+    cat.velocity += gravity; 
+    cat.y += cat.velocity;
+
+    pipes.forEach(pipe => {
+        pipe.x -= pipeSpeed; 
+        
+        if(pipe.x+pipeWidth < cat.x && !pipe.passed){
+            score++;
+            pipe.passed = true;
+            scoreDisplay.textContent = `Pontos: ${score}`;
+            
+            if (score >= pointsToCompleteLevel) {
+                endLevel();
+            }
+        }
+    });
+
+    if(pipes.length && pipes[0].x+pipeWidth < 0) pipes.shift();
+    
+    if(pipeFrame === initialDelay || (pipeFrame > initialDelay && (pipeFrame - initialDelay) % pipeInterval === 0)) {
+            spawnPipe();
+    }
+    
+    pipeFrame++;
+}
+
+
+/* ---------------------------- Loop Principal ---------------------------- */
+function draw() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    drawBackground();
+
+    // Chão (Gramado)
+    ctx.fillStyle = '#8fbc8f';
+    ctx.fillRect(0, canvas.height-20, canvas.width, 20);
+
+    if(gameRunning){
+        
+        drawPipes();
+        drawCat();
+        
+        gameSpeed++;
+        if (gameSpeed % GAME_TICK_RATE === 0) {
+            updateGameLogic();
+            if(checkCollision()) endGame();
+        }
+
+        animationId = requestAnimationFrame(draw);
+    } else {
+        drawCat();
+    }
+}
+
+
+/* ---------------------------- Confetti (Mantido) ---------------------------- */
+let confetti = [];
+let confettiAnimationId = null;
+
+function spawnConfetti(){
+    confetti = [];
+    for(let i=0;i<100;i++){
+        confetti.push({
+            x: Math.random()*canvas.width,
+            y: 0,
+            r: Math.random()*4+2,
+            d: Math.random()*100,
+            color: ['#ff99aa','#ffcc00','#5c99ff'][Math.floor(Math.random()*3)]
+        });
+    }
+    if (!confettiAnimationId) drawConfetti();
+}
+
+function drawConfetti(){
+    confCtx.clearRect(0,0,canvas.width,confCanvas.height); 
+    confetti.forEach(c=>{
+        confCtx.fillStyle = c.color;
+        confCtx.beginPath();
+        confCtx.arc(c.x,c.y,c.r,0,2*Math.PI);
+        confCtx.fill();
+        c.y += 2 + c.d/50;
+        if(c.y>confCanvas.height) c.y=0; 
+    });
+    
+    if(gameOver || levelCompletedScreen.classList.contains('active')) {
+        confettiAnimationId = requestAnimationFrame(drawConfetti); 
+    } else {
+        cancelAnimationFrame(confettiAnimationId);
+        confettiAnimationId = null;
+    }
+}
+
+
+/* ---------------------------- Assets & Inicialização ---------------------------- */
+let assetsLoaded = 0;
+let gameInitialized = false; 
+
+function initializeGame() {
+    if (gameInitialized) return;
+    gameInitialized = true;
+    
+    gameOverScreen.classList.remove('active'); 
+    levelSelectScreen.classList.remove('active');
+    levelCompletedScreen.classList.remove('active'); 
+    
+    draw(); 
+    unlockedLevel = 1;
+    
+    // Mostra a tela inicial
+    if (!levelSelectScreen.classList.contains('active')) {
+         startScreen.classList.add('active');
+    }
+}
+
+function assetLoaded(){
+    assetsLoaded++;
+    // O jogo só começa se todos os assets carregaram E ainda não foi inicializado.
+    if(assetsLoaded === totalAssets && !gameInitialized){
+        initializeGame();
+    }
+}
+
+
+catImg.onload = assetLoaded;
+victoryCatImgSource.onload = assetLoaded; 
+bgImg.onload = assetLoaded; 
+
+
+// LÓGICA DE REDIMENSIONAMENTO OTIMIZADA PARA CELULAR
+function resizeCanvas() {
+    const container = document.getElementById('game-container');
+    const newWidth = container.clientWidth;
+    const newHeight = container.clientHeight;
+
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+    confCanvas.width = newWidth;
+    confCanvas.height = newHeight;
+
+    if (gameRunning) {
+        // Se estiver jogando, forçamos o fim para evitar bugs de canos
+        endGame();
+    } else {
+        // Se estiver nas telas de menu, apenas centralizamos o gatinho
+        cat.y = canvas.height / 2 - cat.height / 2;
+    }
+}
+
+window.addEventListener('resize', resizeCanvas);
+
+document.addEventListener('DOMContentLoaded', () => {
+    resizeCanvas();
+    
+    // 🛑 GARANTIA DE INICIALIZAÇÃO (Mobile Fix): Se após 2 segundos (2000ms) o jogo não tiver iniciado (por falha no asset), ele inicia mesmo assim.
+    setTimeout(() => {
+        if (!gameInitialized) {
+            console.warn("Forçando inicialização do jogo devido a falha no carregamento de assets.");
+            // Define o total de assets como os assets que já carregaram para iniciar o jogo imediatamente.
+            totalAssets = assetsLoaded; 
+            initializeGame();
+        }
+    }, 2000); 
+});
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').then(registration => {
+        console.log('Service Worker registrado com sucesso:', registration);
+      }).catch(error => {
+        console.log('Falha ao registrar o Service Worker:', error);
+      });
+    });
+  }
+
+</script>
+</body>
+</html>
