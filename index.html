@@ -21,10 +21,8 @@ body {
 /* Container do Jogo: Usa unidades de viewport para ser totalmente responsivo */
 #game-container {
     position: relative;
-    /* 🛑 NOVO: Maximizamos o uso da tela no celular */
     width: 95vw; 
     height: 95vh; 
-    /* Garante que o jogo não fique muito grande em telas horizontais (PC/Tablets) */
     max-width: 480px; 
     max-height: 640px; 
     margin: auto;
@@ -39,7 +37,6 @@ canvas {
     width: 100%;
     height: 100%;
     border-radius: 8px;
-    /* Garante que o canvas não tenha scroll ou zoom indesejado */
     touch-action: none;
 }
 
@@ -201,35 +198,35 @@ canvas {
 </head>
 <body>
 <div id="game-container">
-    <canvas id="game" width="480" height="640"></canvas>
-    <canvas id="confetti" width="480" height="640"></canvas>
+    <canvas id="game" width="480" height="640"></canvas>
+    <canvas id="confetti" width="480" height="640"></canvas>
 
-    <div id="score-display">Pontos: 0</div>
+    <div id="score-display">Pontos: 0</div>
 
-    <div id="start-screen" class="screen-overlay active">
-        <h1>Gatinho Flappy 🐾</h1>
-        <p>Escolha o seu Nível de Desafio!</p>
-        <button onclick="showLevelSelect()">Começar</button>
-    </div>
+    <div id="start-screen" class="screen-overlay active">
+        <h1>Gatinho Flappy 🐾</h1>
+        <p>Escolha o seu Nível de Desafio!</p>
+        <button onclick="showLevelSelect()">Começar</button>
+    </div>
 
-    <div id="level-select-screen" class="screen-overlay">
-        <h1>Escolha a Fase</h1>
-        <p>Complete a fase atual para desbloquear a próxima!</p>
-        <div class="level-list" id="level-list">
-            </div>
-    </div>
+    <div id="level-select-screen" class="screen-overlay">
+        <h1>Escolha a Fase</h1>
+        <p>Complete a fase atual para desbloquear a próxima!</p>
+        <div class="level-list" id="level-list">
+        </div>
+    </div>
 
-    <div id="game-over-screen" class="screen-overlay">
-        <h1>GAME OVER 😿</h1>
-        <p id="final-score">Pontuação Final: 0</p>
-        <button onclick="showLevelSelect()">Voltar para a Seleção</button>
-    </div>
+    <div id="game-over-screen" class="screen-overlay">
+        <h1>GAME OVER 😿</h1>
+        <p id="final-score">Pontuação Final: 0</p>
+        <button onclick="showLevelSelect()">Voltar para a Seleção</button>
+    </div>
 
-    <div id="level-completed-message">
-        <div id="victory-text"></div>
-        <img id="victory-cat" src="greg.png"> 
-        <button onclick="showLevelSelect()">Voltar para a Seleção de Níveis</button>
-    </div>
+    <div id="level-completed-message">
+        <div id="victory-text"></div>
+        <img id="victory-cat" src="greg.png"> 
+        <button onclick="showLevelSelect()">Voltar para a Seleção de Níveis</button>
+    </div>
 </div>
 
 <script>
@@ -257,14 +254,14 @@ const levelListContainer = document.getElementById('level-list');
 const pipeWidth = 70; 
 const pipeInterval = 120; 
 const initialDelay = 80; 
-const pointsToCompleteLevel = 10;  
+const pointsToCompleteLevel = 10;  
 
-// ⏱️ NOVO: CONFIGURAÇÕES DE TEMPO PARA LOOP FIXO
-const FRAME_RATE = 60; // Queremos 60 atualizações por segundo
-const TIME_STEP = 1000 / FRAME_RATE; // Duração de um frame em milissegundos (aprox. 16.67ms)
+// ⏱️ NOVO: CONFIGURAÇÕES DE TEMPO PARA LOOP FIXO (60 FPS)
+const FRAME_RATE = 60; 
+const TIME_STEP = 1000 / FRAME_RATE; // 16.67ms
 
-let lastTime = 0; // Armazena o tempo do último quadro
-let accumulatedTime = 0; // Acumula o tempo que passou desde a última atualização da lógica
+let lastTime = 0; 
+let accumulatedTime = 0; 
 
 
 let animationId = null;
@@ -284,11 +281,11 @@ let maxGap = 0;
 
 /* ---------------------------- DIFICULDADE FIXA E MENSAGENS ---------------------------- */
 const EASY_MODE_SETTINGS = { 
-    gravity: 0.3, 
-    jump: -7.0, 
-    speed: 2.25, 
-    gap: 200, 
-    maxGap: 280 
+    gravity: 0.3, 
+    jump: -7.0, 
+    speed: 2.25, 
+    gap: 200, 
+    maxGap: 280 
 };
 
 // MENSAGEM FINAL DE VITÓRIA
@@ -306,497 +303,469 @@ Meu maior desejo é que você seja feliz em tudo o que você se proponha a fazer
 Pois é assim que eu sempre quis te ver.
 `;
 
-// 🛑 ALTERAÇÃO PRINCIPAL AQUI: Adicionamos 'bgSrc', 'pipeColor' e 'groundColor'
+// 🛑 LEVEL_SETTINGS AGORA INCLUI pipeCapColor E BGM
 const LEVEL_SETTINGS = [
-    { 
+    { 
         name: "Gatinhos", 
         message: "Uau, você é boa nisso ein?", 
-        bgSrc: 'gato.png',          // NOVO Fundo para Nível 1
-        pipeColor: '#332dd6',          // Rosa Choque
+        bgSrc: 'gato.png',           
+        pipeColor: '#332dd6',           
         groundColor: '#F0E68C', 
-        pipeCapColor: '#44877d', // 🎨 NOVO: Cor de tampa para o Nível 1 (vermelho escuro)
-        bgmSrc: 'sfx/bgm_nivel1.mp3',       // Amarelo Claro (Areia)
+        pipeCapColor: '#44877d', 
+        bgmSrc: 'sfx/bgm_nivel1.mp3', 
         ...EASY_MODE_SETTINGS 
     }, 
-    { 
+    { 
         name: "Parque", 
         message: "Vai Corinthians... Quer dizer, VÃO GATINHOS!", 
-        bgSrc: 'world.png',          // NOVO Fundo para Nível 2
-        pipeColor: '#008000',          // Verde Floresta
-        groundColor: '#3CB371',        // Verde Médio (Grama)
-        pipeCapColor: '#556B2F', // 🎨 NOVO: Verde Oliva escuro para combinar com o parque
-        bgmSrc: 'sfx/bgm_nivel2.mp3',       // Verde Escuro
+        bgSrc: 'world.png',          
+        pipeColor: '#008000',           
+        groundColor: '#3CB371',          
+        pipeCapColor: '#556B2F', 
+        bgmSrc: 'sfx/bgm_nivel2.mp3', 
         ...EASY_MODE_SETTINGS 
     }, 
-    { 
+    { 
         name: "Piscina", 
         message: "Você tá trapaceando...", 
-        bgSrc: 'piscina.png',          // NOVO Fundo para Nível 3
-        pipeColor: '#4682B4',          // Azul Aço (Tubo de PVC)
-        groundColor: '#1E90FF',   
-        pipeCapColor: '#000080', // 🎨 NOVO: Azul Marinho para contraste com a água
-        bgmSrc: 'sfx/bgm_nivel3.mp3',      // Azul Forte (Água)
+        bgSrc: 'piscina.png',           
+        pipeColor: '#4682B4',           
+        groundColor: '#1E90FF',          
+        pipeCapColor: '#000080', 
+        bgmSrc: 'sfx/bgm_nivel3.mp3', 
         ...EASY_MODE_SETTINGS 
     }, 
-    { 
+    { 
         name: "Caixa de Areia", 
         message: "Mas já? Tá muito fácil!", 
-        bgSrc: 'deserto.png',       // NOVO Fundo para Nível 4
-        pipeColor: '#964B00',          // Marrom (Madeira)
-        groundColor: '#FFDAB9',                  
-        pipeCapColor: '#A0522D', // 🎨 NOVO: Marrom mais escuro para areia
-        bgmSrc: 'sfx/bgm_nivel4.mp3',       // Pêssego (Areia Clara)
+        bgSrc: 'deserto.png',      
+        pipeColor: '#964B00',           
+        groundColor: '#FFDAB9',          
+        pipeCapColor: '#A0522D', 
+        bgmSrc: 'sfx/bgm_nivel4.mp3', 
         ...EASY_MODE_SETTINGS 
     }, 
-    { 
+    { 
         name: "Greg", 
         message: "Você é incrível! Veja a mensagem final.", 
-        bgSrc: 'aniversario.png',         // NOVO Fundo para Nível 5
-        pipeColor: '#FFD700',          // Dourado (Festa)
-        groundColor: '#800080',
-        pipeCapColor: '#000000', // 🎨 NOVO: Preto, para um forte contraste com o fundo claro
-        bgmSrc: 'sfx/bgm_nivel5.mp3',         // Roxo (Tapete de festa)
+        bgSrc: 'aniversario.png',          
+        pipeColor: '#FFD700',           
+        groundColor: '#800080',         
+        pipeCapColor: '#000000', 
+        bgmSrc: 'sfx/bgm_nivel5.mp3', 
         ...EASY_MODE_SETTINGS 
     } 
 ];
+
 /* ---------------------------- ÁUDIO (ATUALIZADO) ---------------------------- */
 // Objetos para SFX (Efeitos Sonoros)
 const sfxJump = new Audio('sfx/jump.wav');
 const sfxGameOver = new Audio('sfx/gameOver.wav');
 const sfxVictory = new Audio('sfx/victory.wav');
-const sfxPoint = new Audio('sfx/point.wav');
+const sfxPoint = new Audio('sfx/point.wav'); // NOVO: SFX de ponto
 
 // Objeto para armazenar as músicas de fundo por nível
 let bgMusics = {}; 
-let currentBGM = null; // Variável para rastrear a música que está tocando
+let currentBGM = null; 
 
 // NOVO: Coleta todos os caminhos de música
 const bgmSrcList = LEVEL_SETTINGS.map(s => s.bgmSrc); 
 
 // Lista de assets de áudio para contagem (SFX + Músicas)
-const audioAssets = [sfxJump, sfxGameOver, sfxVictory];
+const audioAssets = [sfxJump, sfxGameOver, sfxVictory, sfxPoint]; // Adiciona sfxPoint
 bgmSrcList.forEach(src => {
     const audio = new Audio(src);
     audio.loop = true;
-    audio.oncanplaythrough = assetLoaded; // Marca como carregado quando puder tocar
-    bgMusics[src] = audio; // Armazena no objeto
-    audioAssets.push(audio); // Adiciona ao array para contagem
+    audio.oncanplaythrough = assetLoaded; 
+    bgMusics[src] = audio; 
+    audioAssets.push(audio); 
 });
 
 audioAssets.forEach(audio => {
     if(!audio.oncanplaythrough) audio.oncanplaythrough = assetLoaded;
 });
-// O SEU BACKGROUND ANTIGO VAI SER RE-ATRIBUIDO A CADA NÍVEL
+
+// Assets Visuais
 const cat = { x: 50, y: canvas.height/2, width: 55, height: 55, velocity:0 }; 
 const catImg = new Image();
 catImg.src = 'pngwing.com.png'; 
 
-
-// 🛑 NOVO: Criamos um array de imagens para carregar todos os fundos
 let bgImgs = {}; 
 const bgSrcList = LEVEL_SETTINGS.map(s => s.bgSrc);
+let bgImg = null; // Variável para a imagem de fundo atual
 let bgX = 0; 
 let bgSpeed = 0.5; 
 
-// Objeto Image para a tela de vitória
 const victoryCatImgSource = new Image();
 victoryCatImgSource.src = 'greg.png'; 
 
-// ATUALIZAÇÃO DA CONTAGEM DE ASSETS: Gato (1) + Vitória (1) + 5 Fundos = 7
+// ATUALIZAÇÃO DA CONTAGEM DE ASSETS: Gato (1) + Vitória (1) + Fundos (5) + Todos os Áudios (8) = 15
 let totalAssets = 2 + bgSrcList.length + audioAssets.length; 
 let assetsLoaded = 0;
 let unlockedLevel = 1;
 
 let currentPipeColor = '#1a1a1a';
 let currentGroundColor = '#8fbc8f';
-let currentPipeCapColor = '#FFFFFF'; // 🎨 NOVO: Cor da tampa, branco por padrão
+let currentPipeCapColor = '#FFFFFF';
 
 
 /* ---------------------------- TELA DE NÍVEL ---------------------------- */
-// ... (código da função renderLevelSelect() sem alterações) ...
 function renderLevelSelect() {
-    levelListContainer.innerHTML = '';
-    
-    LEVEL_SETTINGS.forEach((level, index) => {
-        const levelNumber = index + 1;
-        const button = document.createElement('button');
-        button.textContent = `Nível ${levelNumber}: ${level.name}`;
-        button.onclick = () => selectLevel(levelNumber);
-        
-        if (levelNumber > unlockedLevel) {
-            button.disabled = true;
-            button.textContent += ' (Bloqueado)';
-        }
-        levelListContainer.appendChild(button);
-    });
+    levelListContainer.innerHTML = '';
+    
+    LEVEL_SETTINGS.forEach((level, index) => {
+        const levelNumber = index + 1;
+        const button = document.createElement('button');
+        button.textContent = `Nível ${levelNumber}: ${level.name}`;
+        button.onclick = () => selectLevel(levelNumber);
+        
+        if (levelNumber > unlockedLevel) {
+            button.disabled = true;
+            button.textContent += ' (Bloqueado)';
+        }
+        levelListContainer.appendChild(button);
+    });
 }
-// ... (código da função showLevelSelect() sem alterações) ...
+
 function showLevelSelect() {
-    startScreen.classList.remove('active');
-    gameOverScreen.classList.remove('active');
-    levelCompletedScreen.classList.remove('active'); 
-    levelSelectScreen.classList.add('active');
-    renderLevelSelect();
-    
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-    }
+    startScreen.classList.remove('active');
+    gameOverScreen.classList.remove('active');
+    levelCompletedScreen.classList.remove('active'); 
+    levelSelectScreen.classList.add('active');
+    renderLevelSelect();
+    
+    // NãO precisamos cancelar o loop aqui, pois ele já é contínuo e desenha a tela de menu
 }
 
 function selectLevel(levelNumber) {
-    currentLevel = levelNumber;
-    const settings = LEVEL_SETTINGS[levelNumber - 1];
-    
-    gravity = settings.gravity;
-    jumpForce = settings.jump;
-    pipeSpeed = settings.speed;
-    minGap = settings.gap;
-    maxGap = settings.maxGap; 
- // 🛑 NOVO: Define o fundo, a cor do cano e a cor do chão
+    currentLevel = levelNumber;
+    const settings = LEVEL_SETTINGS[levelNumber - 1];
+    
+    gravity = settings.gravity;
+    jumpForce = settings.jump;
+    pipeSpeed = settings.speed;
+    minGap = settings.gap;
+    maxGap = settings.maxGap; 
+    
+    // 🛑 ATUALIZA AS CORES E FUNDO DO NÍVEL
     bgImg = bgImgs[settings.bgSrc];
     currentPipeColor = settings.pipeColor;
     currentGroundColor = settings.groundColor;
-    currentPipeCapColor = settings.pipeCapColor; // 🎨 NOVO: Carrega a cor da tampa do nível
-    
-    // 🛑 NOVO: Define o fundo, a cor do cano e a cor do chão
-    bgImg = bgImgs[settings.bgSrc];
-    currentPipeColor = settings.pipeColor;
-    currentGroundColor = settings.groundColor;
-
-     // 🎵 NOVO: LÓGICA DE MÚSICA DE FUNDO POR NÍVEL
-    stopBGM(); // Para qualquer música que possa estar tocando
-    currentBGM = bgMusics[settings.bgmSrc]; // Define a nova música
-    
-    startGame();
+    currentPipeCapColor = settings.pipeCapColor;
+    
+    // 🎵 LÓGICA DE MÚSICA DE FUNDO POR NÍVEL
+    stopBGM(); 
+    currentBGM = bgMusics[settings.bgmSrc]; 
+    
+    startGame();
 }
 
 
 /* ---------------------------- Funções Auxiliares ---------------------------- */
 function handleJump() {
-    if(!gameRunning) return;
+    if(!gameRunning) return;
 
-// NOVO: Toca o som de pulo
-    sfxJump.currentTime = 0; // Reinicia o áudio para que ele possa ser tocado rapidamente
+    sfxJump.currentTime = 0; 
     sfxJump.play().catch(e => {}); 
 
-    cat.velocity = jumpForce; 
+    cat.velocity = jumpForce; 
 }
 
 /* ---------------------------- Funções de Controle de Áudio ---------------------------- */
 function stopBGM() {
     if (currentBGM) {
         currentBGM.pause();
-        currentBGM.currentTime = 0; // Reinicia para a próxima vez
+        currentBGM.currentTime = 0; 
     }
 }
 
 /* Eventos de controle */
 document.addEventListener('keydown', e => { 
-    if (gameRunning && (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W')) {
-        e.preventDefault();
-        handleJump(); 
-    }
+    if (gameRunning && (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W')) {
+        e.preventDefault();
+        handleJump(); 
+    }
 });
 canvas.addEventListener('mousedown', () => { 
-    if(gameRunning) handleJump(); 
+    if(gameRunning) handleJump(); 
 });
 canvas.addEventListener('touchstart', e => { 
-    if(gameRunning) { 
-        e.preventDefault(); 
-        handleJump(); 
-    } 
+    if(gameRunning) { 
+        e.preventDefault(); 
+        handleJump(); 
+    } 
 }, {passive:false});
 
 
 /* ---------------------------- Estado do Jogo ---------------------------- */
-// ... (código da função startGame() sem alterações) ...
 function startGame() {
-    levelSelectScreen.classList.remove('active');
-    gameOverScreen.classList.remove('active');
-
-     // 🎵 NOVO: Inicia a música do nível atual
+    levelSelectScreen.classList.remove('active');
+    gameOverScreen.classList.remove('active');
+    
+    // 🎵 NOVO: Inicia a música do nível atual
     if (currentBGM) {
         currentBGM.play().catch(e => console.log("Música do nível não iniciada."));
     }
-
-    resetGameData();
-    gameRunning = true;
-    gameOver = false;
-
-    lastTime = 0;
-
-    animationId = requestAnimationFrame(draw);
-
+    
+    resetGameData();
+    gameRunning = true;
+    gameOver = false;
+    
+    // Limpa o tempo acumulado para que a lógica comece imediatamente
+    lastTime = 0; 
+    accumulatedTime = 0; 
+    
+    // O loop `draw` já está rodando, não precisamos chamá-lo novamente
 }
-// ... (código da função endLevel() sem alterações) ...
+
 function endLevel() {
-    gameRunning = false;
+    gameRunning = false;
 
     // NOVO: Pausa a música e toca o SFX de vitória
-    stopBGM(); // <--- CHAMA A NOVA FUNÇÃO DE PARAR
+    stopBGM(); 
     sfxVictory.play();
 
-    spawnConfetti();
-    drawConfetti(); 
-    
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-    }
+    spawnConfetti();
+    drawConfetti(); 
+    
+    // Remove o `animationId` do game loop para que o confetti rode sozinho
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
 
-    const settings = LEVEL_SETTINGS[currentLevel - 1];
-    
-    // Lógica para mostrar/esconder a imagem de vitória
-    const isFinalLevel = currentLevel === LEVEL_SETTINGS.length;
-    victoryCatImg.style.display = isFinalLevel ? 'none' : 'block';
+    const settings = LEVEL_SETTINGS[currentLevel - 1];
+    
+    const isFinalLevel = currentLevel === LEVEL_SETTINGS.length;
+    victoryCatImg.style.display = isFinalLevel ? 'none' : 'block';
 
-    if (!isFinalLevel) { // Níveis 1 a 4
-        unlockedLevel = Math.max(unlockedLevel, currentLevel + 1);
-        
-        // Mensagem de nível normal concluído
-        victoryText.textContent = settings.message;
-        victoryText.style.color = '#00ff7f'; 
-        victoryText.style.fontWeight = 'bold';
-        victoryText.style.textShadow = '2px 2px 4px #000';
-        
-        levelCompletedScreen.classList.add('active');
-        
-    } else {
-        // MENSAGEM FINAL PARA O NÍVEL MÁXIMO (Nível 5)
-        victoryText.textContent = FINAL_VICTORY_MESSAGE; 
-        victoryText.style.color = '#fff'; 
-        victoryText.style.fontWeight = 'normal';
-        victoryText.style.textShadow = 'none';
+    if (!isFinalLevel) { 
+        unlockedLevel = Math.max(unlockedLevel, currentLevel + 1);
+        
+        victoryText.textContent = settings.message;
+        victoryText.style.color = '#00ff7f'; 
+        victoryText.style.fontWeight = 'bold';
+        victoryText.style.textShadow = '2px 2px 4px #000';
+        
+        levelCompletedScreen.classList.add('active');
+        
+    } else {
+        // MENSAGEM FINAL PARA O NÍVEL MÁXIMO
+        victoryText.textContent = FINAL_VICTORY_MESSAGE; 
+        victoryText.style.color = '#fff'; 
+        victoryText.style.fontWeight = 'normal';
+        victoryText.style.textShadow = 'none';
 
-        levelCompletedScreen.classList.add('active');
-    }
+        levelCompletedScreen.classList.add('active');
+    }
 }
-// ... (código da função endGame() sem alterações) ...
+
 function endGame() {
-    gameRunning = false;
-    gameOver = true;
+    gameRunning = false;
+    gameOver = true;
 
     // NOVO: Pausa a música e toca o SFX de derrota
-    stopBGM(); // <--- CHAMA A NOVA FUNÇÃO DE PARAR
+    stopBGM(); 
     sfxGameOver.play(); 
 
-    finalScoreText.textContent = `Pontuação Final: ${score} (Nível ${currentLevel})`;
-    gameOverScreen.classList.add('active');
-    spawnConfetti();
-    drawConfetti();
-    
-    if (animationId) {
-        cancelAnimationFrame(animationId);
-        animationId = null;
-    }
+    finalScoreText.textContent = `Pontuação Final: ${score} (Nível ${currentLevel})`;
+    gameOverScreen.classList.add('active');
+    spawnConfetti();
+    drawConfetti();
+    
+    // Remove o `animationId` do game loop para que o confetti rode sozinho
+    if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+    }
 }
 
 function resetGameData() {
-    cat.y = canvas.height/2;
-    cat.velocity = 0;
-    pipes = [];
-    score = 0;
-    
-    pipeFrame = 0; 
-    gameSpeed = 0; 
-    
-    bgX = 0;
-    
-    scoreDisplay.textContent = `Pontos: 0`;
+    cat.y = canvas.height/2;
+    cat.velocity = 0;
+    pipes = [];
+    score = 0;
+    
+    pipeFrame = 0; 
+    
+    bgX = 0;
+    
+    scoreDisplay.textContent = `Pontos: 0`;
 }
 
 
 /* ---------------------------- Geração de Canos ---------------------------- */
-// ... (código da função spawnPipe() sem alterações) ...
 function spawnPipe() {
-    const currentGap = Math.random() * (maxGap - minGap) + minGap; 
-    
-    const safeZoneTop = 50; 
-    const safeZoneBottom = canvas.height - 50 - currentGap; 
+    const currentGap = Math.random() * (maxGap - minGap) + minGap; 
+    
+    const safeZoneTop = 50; 
+    const safeZoneBottom = canvas.height - 50 - currentGap; 
 
-    const topHeight = Math.random() * (safeZoneBottom - safeZoneTop) + safeZoneTop;
+    const topHeight = Math.random() * (safeZoneBottom - safeZoneTop) + safeZoneTop;
 
-    pipes.push({
-        x: canvas.width,
-        top: topHeight,
-        gap: currentGap,
-        passed:false
-    });
+    pipes.push({
+        x: canvas.width,
+        top: topHeight,
+        gap: currentGap,
+        passed:false
+    });
 }
 
 
 /* ---------------------------- Desenho ---------------------------- */
-
-// FUNÇÃO DE DESENHO DO FUNDO ROLANTE
 function drawBackground() {
-    // 🛑 NOVO: Usa a imagem bgImg que foi definida no selectLevel
-    const imgToDraw = bgImg; 
-    
-    if (!imgToDraw || !imgToDraw.complete || imgToDraw.naturalWidth === 0) {
-        // Usa a cor de fundo sólida se a imagem não carregar (agora usa o Fallback)
-        ctx.fillStyle = '#ADD8E6'; 
-        ctx.fillRect(0, 0, canvas.width, canvas.height); 
-        return;
-    }
+    const imgToDraw = bgImg; 
+    
+    if (!imgToDraw || !imgToDraw.complete || imgToDraw.naturalWidth === 0) {
+        ctx.fillStyle = currentGroundColor; // Fallback para a cor do chão
+        ctx.fillRect(0, 0, canvas.width, canvas.height); 
+        return;
+    }
 
-    let drawWidth = canvas.width;
-    let drawHeight = drawWidth * (imgToDraw.naturalHeight / imgToDraw.naturalWidth);
-    
-    if (drawHeight < canvas.height) {
-        drawHeight = canvas.height;
-        drawWidth = drawHeight * (imgToDraw.naturalWidth / imgToDraw.naturalHeight);
-    }
-    
-    const offsetY = 0; 
-    bgX -= pipeSpeed * (bgSpeed / 2.25); 
-    
-    if (bgX <= -drawWidth) {
-        bgX = 0;
-    }
-    
-    ctx.drawImage(imgToDraw, bgX, offsetY, drawWidth, drawHeight);
-    ctx.drawImage(imgToDraw, bgX + drawWidth, offsetY, drawWidth, drawHeight);
+    let drawWidth = canvas.width;
+    let drawHeight = drawWidth * (imgToDraw.naturalHeight / imgToDraw.naturalWidth);
+    
+    if (drawHeight < canvas.height) {
+        drawHeight = canvas.height;
+        drawWidth = drawHeight * (imgToDraw.naturalWidth / imgToDraw.naturalHeight);
+    }
+    
+    const offsetY = 0; 
+    // Garante que o fundo role apenas se o jogo estiver rodando
+    if (gameRunning) {
+        bgX -= pipeSpeed * (bgSpeed / 2.25); 
+    }
+    
+    if (bgX <= -drawWidth) {
+        bgX = 0;
+    }
+    
+    ctx.drawImage(imgToDraw, bgX, offsetY, drawWidth, drawHeight);
+    ctx.drawImage(imgToDraw, bgX + drawWidth, offsetY, drawWidth, drawHeight);
 }
-
-//  
-
+ 
 function drawCat() {
-    ctx.save();
-    ctx.translate(cat.x + cat.width/2, cat.y + cat.height/2);
-    ctx.rotate(Math.min(Math.PI/2, Math.max(-Math.PI/4, cat.velocity * 0.05)));
-    ctx.drawImage(catImg, -cat.width/2, -cat.height/2, cat.width, cat.height);
-    ctx.restore();
+    ctx.save();
+    ctx.translate(cat.x + cat.width/2, cat.y + cat.height/2);
+    // Inclina o gatinho baseado na velocidade
+    ctx.rotate(Math.min(Math.PI/2, Math.max(-Math.PI/4, cat.velocity * 0.05)));
+    ctx.drawImage(catImg, -cat.width/2, -cat.height/2, cat.width, cat.height);
+    ctx.restore();
 }
 
-// FUNÇÃO DE DESENHO DOS CANOS ATUALIZADA (Usa a cor do nível)
 function drawPipes() {
-    // 🛑 NOVO: Pega a cor do cano do nível atual
-    const PIPE_BODY_COLOR = currentPipeColor; 
-    const PAW_CAP_COLOR = currentPipeCapColor;   
-    const PAW_CAP_HEIGHT = 20;         
-    
-    pipes.forEach(pipe => {
-        const topHeight = pipe.top;
-        const bottomY = pipe.top + pipe.gap;
-        const bottomHeight = canvas.height - bottomY - 20;
+    const PIPE_BODY_COLOR = currentPipeColor; 
+    const PAW_CAP_COLOR = currentPipeCapColor;   // Usa a cor da tampa do nível
+    const PAW_CAP_HEIGHT = 20;         
+    
+    pipes.forEach(pipe => {
+        const topHeight = pipe.top;
+        const bottomY = pipe.top + pipe.gap;
+        const bottomHeight = canvas.height - bottomY - 20;
 
-        // --- CANO SUPERIOR ---
-        ctx.fillStyle = PIPE_BODY_COLOR;
-        ctx.fillRect(pipe.x, 0, pipeWidth, topHeight); 
-        ctx.fillStyle = PAW_CAP_COLOR;
-        ctx.fillRect(pipe.x, topHeight - PAW_CAP_HEIGHT, pipeWidth, PAW_CAP_HEIGHT);
-        
-
-        // --- CANO INFERIOR ---
-        ctx.fillStyle = PIPE_BODY_COLOR;
-        ctx.fillRect(pipe.x, bottomY, pipeWidth, bottomHeight);
-        ctx.fillStyle = PAW_CAP_COLOR;
-        ctx.fillRect(pipe.x, bottomY, pipeWidth, PAW_CAP_HEIGHT);
-    });
+        // --- CANO SUPERIOR ---
+        ctx.fillStyle = PIPE_BODY_COLOR;
+        ctx.fillRect(pipe.x, 0, pipeWidth, topHeight); 
+        ctx.fillStyle = PAW_CAP_COLOR;
+        ctx.fillRect(pipe.x, topHeight - PAW_CAP_HEIGHT, pipeWidth, PAW_CAP_HEIGHT);
+        
+        // --- CANO INFERIOR ---
+        ctx.fillStyle = PIPE_BODY_COLOR;
+        ctx.fillRect(pipe.x, bottomY, pipeWidth, bottomHeight);
+        ctx.fillStyle = PAW_CAP_COLOR;
+        ctx.fillRect(pipe.x, bottomY, pipeWidth, PAW_CAP_HEIGHT);
+    });
 }
 
 /* ---------------------------- Colisões ---------------------------- */
-// ... (código da função checkCollision() sem alterações) ...
 function checkCollision() {
-    // 🛑 Garante que a colisão com o chão e teto respeite o novo tamanho do canvas
-    if(cat.y + cat.height > canvas.height-20 || cat.y < 0) return true;
-    
-    for(const pipe of pipes){
-        if(cat.x+cat.width > pipe.x && cat.x < pipe.x + pipeWidth){
-            if(cat.y < pipe.top || cat.y + cat.height > pipe.top+pipe.gap) return true;
-        }
-    }
-    return false;
+    // Colisão com o chão (20px de altura) ou teto
+    if(cat.y + cat.height > canvas.height-20 || cat.y < 0) return true;
+    
+    for(const pipe of pipes){
+        if(cat.x+cat.width > pipe.x && cat.x < pipe.x + pipeWidth){
+            if(cat.y < pipe.top || cat.y + cat.height > pipe.top+pipe.gap) return true;
+        }
+    }
+    return false;
 }
 
-/* ---------------------------- Lógica do Jogo ---------------------------- */
-// ... (código da função updateGameLogic() sem alterações) ...
+/* ---------------------------- Lógica do Jogo (Chamada 60x/seg) ---------------------------- */
 function updateGameLogic() {
-    cat.velocity += gravity; 
-    cat.y += cat.velocity;
+    cat.velocity += gravity; 
+    cat.y += cat.velocity;
 
-    pipes.forEach(pipe => {
-        pipe.x -= pipeSpeed; 
-        
-        if(pipe.x+pipeWidth < cat.x && !pipe.passed){
-            score++;
-            pipe.passed = true;
-            scoreDisplay.textContent = `Pontos: ${score}`;
+    pipes.forEach(pipe => {
+        pipe.x -= pipeSpeed; 
+        
+        if(pipe.x+pipeWidth < cat.x && !pipe.passed){
+            score++;
+            pipe.passed = true;
+            scoreDisplay.textContent = `Pontos: ${score}`;
 
-          // 🎵 NOVO: Toca o som de ponto
-            sfxPoint.currentTime = 0; // Garante que toque
+            // 🎵 Toca o som de ponto
+            sfxPoint.currentTime = 0; 
             sfxPoint.play().catch(e => {}); 
-            
-            if (score >= pointsToCompleteLevel) {
-                endLevel();
-            }
-        }
-    });
+            
+            if (score >= pointsToCompleteLevel) {
+                endLevel();
+            }
+        }
+    });
 
-    if(pipes.length && pipes[0].x+pipeWidth < 0) pipes.shift();
-    
-    if(pipeFrame === initialDelay || (pipeFrame > initialDelay && (pipeFrame - initialDelay) % pipeInterval === 0)) {
-            spawnPipe();
-    }
-    
-    pipeFrame++;
+    if(pipes.length && pipes[0].x+pipeWidth < 0) pipes.shift();
+    
+    if(pipeFrame === initialDelay || (pipeFrame > initialDelay && (pipeFrame - initialDelay) % pipeInterval === 0)) {
+            spawnPipe();
+    }
+    
+    pipeFrame++;
 }
 
 
-/* ---------------------------- Loop Principal (MODIFICADO) ---------------------------- */
-// Função draw agora recebe o timestamp do requestAnimationFrame
+/* ---------------------------- Loop Principal (CORRIGIDO E FIXO) ---------------------------- */
 function draw(currentTime) {
-    if (!gameRunning) {
-        // Se o jogo não estiver rodando, ainda desenhamos o gato na tela de menu/fim
-        ctx.clearRect(0,0,canvas.width,canvas.height);
-        drawBackground();
-        // Chão
-        ctx.fillStyle = currentGroundColor;
-        ctx.fillRect(0, canvas.height-20, canvas.width, 20);
-        drawCat();
-        return; // Sai do loop se o jogo não estiver ativo
-    }
     
-    // 1. CÁLCULO DO TEMPO
-    if (lastTime === 0) lastTime = currentTime;
-    let deltaTime = currentTime - lastTime;
-    lastTime = currentTime;
-    
-    // Evita o "espirro" do deltaTime após pausar (ex: trocar de aba)
-    // Limita o delta em 250ms para evitar que o jogo "salte" frames após uma longa pausa.
-    if (deltaTime > 250) deltaTime = 250; 
-    
-    accumulatedTime += deltaTime;
-
-    // 2. ATUALIZAÇÃO DA LÓGICA EM TEMPO FIXO
-    // Enquanto tivermos tempo acumulado suficiente, rodamos a lógica do jogo
-    let updateCount = 0;
-    while (accumulatedTime >= TIME_STEP) {
-        // Chama a função de atualização de lógica.
-        // Já que a lógica é chamada em tempo fixo (TIME_STEP), 
-        // podemos remover a variável 'gameSpeed' e 'GAME_TICK_RATE' da lógica de jogo.
-        updateGameLogic(); 
+    if (gameRunning) {
+        // --- 1. LÓGICA DE TEMPO FIXO ---
+        if (lastTime === 0) lastTime = currentTime;
+        let deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
         
-        // Verifica colisões APÓS a lógica
-        if(checkCollision()) {
-            endGame();
-            accumulatedTime = 0; // Limpa para sair do while
-            break; // Sai do loop interno
-        }
-
-        accumulatedTime -= TIME_STEP;
-        updateCount++;
+        // Limita o delta em 250ms para evitar que o jogo "salte" frames após uma longa pausa
+        if (deltaTime > 250) deltaTime = 250; 
         
-        // Proteção para evitar loop infinito (raro, mas seguro)
-        if (updateCount > 10) { 
-            accumulatedTime = 0; 
-            break; 
+        accumulatedTime += deltaTime;
+
+        let updateCount = 0;
+        while (accumulatedTime >= TIME_STEP) {
+            updateGameLogic(); 
+            
+            // Colisão é verificada após a atualização da lógica
+            if(checkCollision()) {
+                endGame();
+                accumulatedTime = 0; 
+                break; 
+            }
+
+            accumulatedTime -= TIME_STEP;
+            updateCount++;
+            
+            // Proteção para evitar loop infinito
+            if (updateCount > 10) { 
+                accumulatedTime = 0; 
+                break; 
+            }
         }
+    } else {
+        // Se o jogo não estiver rodando (Menu/Game Over),
+        // resetamos o tempo para a próxima partida e atualizamos o lastTime para evitar saltos.
+        accumulatedTime = 0;
+        lastTime = currentTime; 
     }
 
-    // 3. DESENHO
-    // O desenho continua usando o requestAnimationFrame, mas a lógica já foi estabilizada.
+    // --- 2. DESENHO (DRAWING) ---
+    // O desenho sempre ocorre, independentemente do estado de gameRunning
     ctx.clearRect(0,0,canvas.width,canvas.height);
     
     drawBackground();
@@ -808,7 +777,8 @@ function draw(currentTime) {
     drawPipes();
     drawCat();
 
-    // 4. PRÓXIMO QUADRO
+    // --- 3. PRÓXIMO QUADRO (SEMPRE CHAMADO) ---
+    // O loop continua a rodar. A lógica interna (gameRunning) controla se a física é aplicada.
     animationId = requestAnimationFrame(draw);
 }
 
@@ -817,65 +787,70 @@ let confetti = [];
 let confettiAnimationId = null;
 
 function spawnConfetti(){
-    confetti = [];
-    for(let i=0;i<100;i++){
-        confetti.push({
-            x: Math.random()*canvas.width,
-            y: 0,
-            r: Math.random()*4+2,
-            d: Math.random()*100,
-            color: ['#ff99aa','#ffcc00','#5c99ff'][Math.floor(Math.random()*3)]
-        });
-    }
-    if (!confettiAnimationId) drawConfetti();
+    confetti = [];
+    for(let i=0;i<100;i++){
+        confetti.push({
+            x: Math.random()*canvas.width,
+            y: 0,
+            r: Math.random()*4+2,
+            d: Math.random()*100,
+            color: ['#ff99aa','#ffcc00','#5c99ff'][Math.floor(Math.random()*3)]
+        });
+    }
+    // Garante que o loop do confetti comece se ainda não estiver rodando
+    if (!confettiAnimationId) drawConfetti();
 }
 
 function drawConfetti(){
-    confCtx.clearRect(0,0,canvas.width,confCanvas.height); 
-    confetti.forEach(c=>{
-        confCtx.fillStyle = c.color;
-        confCtx.beginPath();
-        confCtx.arc(c.x,c.y,c.r,0,2*Math.PI);
-        confCtx.fill();
-        c.y += 2 + c.d/50;
-        if(c.y>confCanvas.height) c.y=0; 
-    });
-    
-    if(gameOver || levelCompletedScreen.classList.contains('active')) {
-        confettiAnimationId = requestAnimationFrame(drawConfetti); 
-    } else {
-        cancelAnimationFrame(confettiAnimationId);
-        confettiAnimationId = null;
-    }
+    confCtx.clearRect(0,0,canvas.width,confCanvas.height); 
+    confetti.forEach(c=>{
+        confCtx.fillStyle = c.color;
+        confCtx.beginPath();
+        confCtx.arc(c.x,c.y,c.r,0,2*Math.PI);
+        confCtx.fill();
+        c.y += 2 + c.d/50;
+        if(c.y>confCanvas.height) c.y=0; 
+    });
+    
+    // O loop do confetti só continua enquanto a tela de Game Over ou Vitória estiver ativa
+    if(gameOver || levelCompletedScreen.classList.contains('active')) {
+        confettiAnimationId = requestAnimationFrame(drawConfetti); 
+    } else {
+        cancelAnimationFrame(confettiAnimationId);
+        confettiAnimationId = null;
+    }
 }
 
 
-/* ---------------------------- Assets & Inicialização ---------------------------- */
+/* ---------------------------- Assets & Inicialização (CORRIGIDO) ---------------------------- */
 let gameInitialized = false; 
 
 function initializeGame() {
-    if (gameInitialized) return;
-    gameInitialized = true;
+    if (gameInitialized) return;
+    gameInitialized = true;
     
-    // 🛑 NOVO: Define o fundo inicial na inicialização
+    // Define as configurações visuais do Nível 1 como padrão
     bgImg = bgImgs[LEVEL_SETTINGS[0].bgSrc];
     currentPipeColor = LEVEL_SETTINGS[0].pipeColor;
     currentGroundColor = LEVEL_SETTINGS[0].groundColor;
-    
-    gameOverScreen.classList.remove('active'); 
-    levelSelectScreen.classList.remove('active');
-    levelCompletedScreen.classList.remove('active'); 
-    
-    draw(); 
-    unlockedLevel = 1;
-    
-    // Mostra a tela inicial
-    if (!levelSelectScreen.classList.contains('active')) {
-         startScreen.classList.add('active');
-    }
+    currentPipeCapColor = LEVEL_SETTINGS[0].pipeCapColor;
+    
+    gameOverScreen.classList.remove('active'); 
+    levelSelectScreen.classList.remove('active');
+    levelCompletedScreen.classList.remove('active'); 
+    
+    unlockedLevel = 1;
+    
+    // Mostra a tela inicial
+    if (!levelSelectScreen.classList.contains('active')) {
+    	startScreen.classList.add('active');
+    }
+    
+    // 🚀 NOVO: INICIAMOS O LOOP AQUI, APÓS O CARREGAMENTO DOS ASSETS
+    // O loop se auto-chama e controlará as animações e a lógica de jogo
+    animationId = requestAnimationFrame(draw);
 }
 
-// 🛑 NOVO: Função de carregamento que lida com múltiplos fundos
 function loadBackgroundAssets() {
     bgSrcList.forEach(src => {
         const img = new Image();
@@ -886,55 +861,56 @@ function loadBackgroundAssets() {
 }
 
 function assetLoaded(){
-    assetsLoaded++;
-    // O jogo só começa se todos os assets carregaram E ainda não foi inicializado.
-    if(assetsLoaded === totalAssets && !gameInitialized){
-        initializeGame();
-    }
+    assetsLoaded++;
+    if(assetsLoaded === totalAssets && !gameInitialized){
+        initializeGame();
+    }
 }
 
 
 catImg.onload = assetLoaded;
 victoryCatImgSource.onload = assetLoaded; 
-// 🛑 NOVO: Chama a função para carregar todos os fundos
 loadBackgroundAssets(); 
 
 // LÓGICA DE REDIMENSIONAMENTO OTIMIZADA PARA CELULAR
 function resizeCanvas() {
-    const container = document.getElementById('game-container');
-    const newWidth = container.clientWidth;
-    const newHeight = container.clientHeight;
+    const container = document.getElementById('game-container');
+    const newWidth = container.clientWidth;
+    const newHeight = container.clientHeight;
 
-    canvas.width = newWidth;
-    canvas.height = newHeight;
-    confCanvas.width = newWidth;
-    confCanvas.height = newHeight;
+    canvas.width = newWidth;
+    canvas.height = newHeight;
+    confCanvas.width = newWidth;
+    confCanvas.height = newHeight;
 
-    if (gameRunning) {
-        // Se estiver jogando, forçamos o fim para evitar bugs de canos
-        endGame();
-    } else {
-        // Se estiver nas telas de menu, apenas centralizamos o gatinho
-        cat.y = canvas.height / 2 - cat.height / 2;
-    }
+    if (gameRunning) {
+        // Se estiver jogando, forçamos o fim para evitar bugs de canos
+        endGame();
+    } else {
+        // Se estiver nas telas de menu, apenas centralizamos o gatinho
+        cat.y = canvas.height / 2 - cat.height / 2;
+    }
 }
 
 window.addEventListener('resize', resizeCanvas);
 
 document.addEventListener('DOMContentLoaded', () => {
-    resizeCanvas();
-    
-    // 🛑 GARANTIA DE INICIALIZAÇÃO (Mobile Fix): Se após 2 segundos (2000ms) o jogo não tiver iniciado (por falha no asset), ele inicia mesmo assim.
-    setTimeout(() => {
-        if (!gameInitialized) {
-            console.warn("Forçando inicialização do jogo devido a falha no carregamento de assets.");
-            // Define o total de assets como os assets que já carregaram para iniciar o jogo imediatamente.
-            totalAssets = assetsLoaded; 
-            initializeGame();
-        }
-    }, 2000); 
+    resizeCanvas();
+    
+    // 🛑 REMOVEMOS A CHAMADA ANTECIPADA DE requestAnimationFrame(draw) DAQUI.
+    // O loop só inicia em initializeGame() após o carregamento dos assets.
+    
+    // 🛑 GARANTIA DE INICIALIZAÇÃO (Mobile Fix) - Chama initializeGame se falhar
+    setTimeout(() => {
+        if (!gameInitialized) {
+            console.warn("Forçando inicialização do jogo devido a falha no carregamento de assets.");
+            // Define totalAssets = assetsLoaded para que initializeGame rode
+            totalAssets = assetsLoaded; 
+            initializeGame(); 
+        }
+    }, 2000); 
 });
-
+  
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('sw.js').then(registration => {
@@ -948,3 +924,5 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+</html>
+
