@@ -6,7 +6,11 @@ const urlsToCache = [
   'pngwing.com.png',
   'world.png',
   'greg.png',
-  'icone-512x512.png'
+  'icone-512x512.png',
+  'aniversario.png',
+  'gato.png',
+  'piscina.png',
+  'deserto.png',
 ];
 
 // Evento de instalação: abre o cache e adiciona os arquivos da lista
@@ -35,3 +39,4 @@ self.addEventListener('fetch', event => {
     )
   );
 });
+
