@@ -11,6 +11,8 @@ const urlsToCache = [
   'gato.png',
   'piscina.png',
   'deserto.png',
+  'gregfeliz.png',
+  'Layane.png'
 ];
 
 // Evento de instalação: abre o cache e adiciona os arquivos da lista
