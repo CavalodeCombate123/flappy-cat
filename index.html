@@ -152,6 +152,7 @@ canvas {
     pointer-events: auto;
 }
 
+/* ⭐️ NOVO: Altura máxima para permitir rolagem e forçar visualização do fim */
 #victory-text {
     font-size: clamp(1.1rem, 4vw, 1.8rem); 
     font-weight: bold;
@@ -159,19 +160,24 @@ canvas {
     text-shadow: 2px 2px 4px #000;
     margin-bottom: 10px;
     white-space: pre-wrap; 
-    max-height: 60vh; 
-    overflow-y: auto; 
+    max-height: 60vh; /* Altura máxima para forçar a rolagem se o texto for grande */
+    overflow-y: auto; /* Habilita a rolagem */
     padding: 10px;
     line-height: 1.4;
+    width: 90%; 
+    box-sizing: border-box;
 }
 
 /* Estilo para a imagem de vitória */
 #victory-cat {
     width: clamp(100px, 30vw, 150px);
     height: auto;
-    margin-bottom: 20px;
+    margin-top: 20px; /* Margem superior para separar do texto */
     image-rendering: pixelated; 
-    display: none; 
+    display: block; 
+    /* 🛑 NOVO: Escondida inicialmente (será mostrada via JS) */
+    opacity: 0;
+    transition: opacity 0.5s;
 }
 
 /* Estilo pixelado para o botão de selecionar nível na tela de vitória */
@@ -249,6 +255,8 @@ const victoryText = document.getElementById('victory-text');
 const victoryCatImg = document.getElementById('victory-cat'); 
 const levelListContainer = document.getElementById('level-list');
 
+let imageRevealed = false; // ⭐️ NOVO: Flag para evitar que o evento de rolagem dispare a revelação várias vezes
+
 
 /* ---------------------------- Configurações Globais e de Jogo ---------------------------- */
 const pipeWidth = 70; 
@@ -256,7 +264,7 @@ const pipeInterval = 120;
 const initialDelay = 80; 
 const pointsToCompleteLevel = 10;  
 
-// ⏱️ NOVO: CONFIGURAÇÕES DE TEMPO PARA LOOP FIXO (60 FPS)
+// ⏱️ CONFIGURAÇÕES DE TEMPO PARA LOOP FIXO (60 FPS)
 const FRAME_RATE = 60; 
 const TIME_STEP = 1000 / FRAME_RATE; // 16.67ms
 
@@ -288,9 +296,11 @@ const EASY_MODE_SETTINGS = {
     maxGap: 280 
 };
 
-// MENSAGEM FINAL DE VITÓRIA
+// MENSAGEM FINAL DE VITÓRIA (Longa para forçar a rolagem)
 const FINAL_VICTORY_MESSAGE = `
+
 Parabéns, você completou o jogo!
+
 Esse jogo foi algo inesperado e que surgiu na minha cabeça do nada... E por isso foi algo que eu considerei muito importante, já que eu nunca tinha feito algo assim... Mas, aproveitei que estava estudando e tentei fazer... Então espero que tenha gostado, mesmo que só um pouco.
 
 Layane, eu te desejo infinitas felicidades e um feliz aniversário
@@ -301,9 +311,11 @@ E eu não poderia ser mais grato por ter conhecido alguém como você
 Sua felicidade é a alegria de todos, incluindo a minha
 Meu maior desejo é que você seja feliz em tudo o que você se proponha a fazer
 Pois é assim que eu sempre quis te ver.
+E o mais importante, FELIZ ANIVERSÁRIO!!!
+
 `;
 
-// 🛑 LEVEL_SETTINGS AGORA INCLUI pipeCapColor E BGM
+// LEVEL_SETTINGS
 const LEVEL_SETTINGS = [
     { 
         name: "Gatinhos", 
@@ -348,7 +360,7 @@ const LEVEL_SETTINGS = [
     { 
         name: "Greg", 
         message: "Você é incrível! Veja a mensagem final.", 
-        bgSrc: 'aniversario.png',          
+        bgSrc: 'Layane.png',          
         pipeColor: '#FFD700',           
         groundColor: '#800080',         
         pipeCapColor: '#000000', 
@@ -357,22 +369,21 @@ const LEVEL_SETTINGS = [
     } 
 ];
 
-/* ---------------------------- ÁUDIO (ATUALIZADO) ---------------------------- */
+/* ---------------------------- ÁUDIO ---------------------------- */
 // Objetos para SFX (Efeitos Sonoros)
 const sfxJump = new Audio('sfx/jump.wav');
 const sfxGameOver = new Audio('sfx/gameOver.wav');
 const sfxVictory = new Audio('sfx/victory.wav');
-const sfxPoint = new Audio('sfx/point.wav'); // NOVO: SFX de ponto
+const sfxPoint = new Audio('sfx/point.wav'); 
 
 // Objeto para armazenar as músicas de fundo por nível
 let bgMusics = {}; 
 let currentBGM = null; 
 
-// NOVO: Coleta todos os caminhos de música
 const bgmSrcList = LEVEL_SETTINGS.map(s => s.bgmSrc); 
 
 // Lista de assets de áudio para contagem (SFX + Músicas)
-const audioAssets = [sfxJump, sfxGameOver, sfxVictory, sfxPoint]; // Adiciona sfxPoint
+const audioAssets = [sfxJump, sfxGameOver, sfxVictory, sfxPoint]; 
 bgmSrcList.forEach(src => {
     const audio = new Audio(src);
     audio.loop = true;
@@ -392,15 +403,17 @@ catImg.src = 'pngwing.com.png';
 
 let bgImgs = {}; 
 const bgSrcList = LEVEL_SETTINGS.map(s => s.bgSrc);
-let bgImg = null; // Variável para a imagem de fundo atual
+let bgImg = null; 
 let bgX = 0; 
 let bgSpeed = 0.5; 
 
-const victoryCatImgSource = new Image();
-victoryCatImgSource.src = 'greg.png'; 
+// AQUI ESTÃO AS DUAS IMAGENS PARA A TELA DE VITÓRIA
+const gregHappyImg = new Image();
+gregHappyImg.src = 'gregfeliz.png'; 
+const gregNormalImg = new Image();
+gregNormalImg.src = 'greg.png';
 
-// ATUALIZAÇÃO DA CONTAGEM DE ASSETS: Gato (1) + Vitória (1) + Fundos (5) + Todos os Áudios (8) = 15
-let totalAssets = 2 + bgSrcList.length + audioAssets.length; 
+let totalAssets = 1 + 2 + bgSrcList.length + audioAssets.length; 
 let assetsLoaded = 0;
 let unlockedLevel = 1;
 
@@ -433,8 +446,6 @@ function showLevelSelect() {
     levelCompletedScreen.classList.remove('active'); 
     levelSelectScreen.classList.add('active');
     renderLevelSelect();
-    
-    // NãO precisamos cancelar o loop aqui, pois ele já é contínuo e desenha a tela de menu
 }
 
 function selectLevel(levelNumber) {
@@ -447,13 +458,11 @@ function selectLevel(levelNumber) {
     minGap = settings.gap;
     maxGap = settings.maxGap; 
     
-    // 🛑 ATUALIZA AS CORES E FUNDO DO NÍVEL
     bgImg = bgImgs[settings.bgSrc];
     currentPipeColor = settings.pipeColor;
     currentGroundColor = settings.groundColor;
     currentPipeCapColor = settings.pipeCapColor;
     
-    // 🎵 LÓGICA DE MÚSICA DE FUNDO POR NÍVEL
     stopBGM(); 
     currentBGM = bgMusics[settings.bgmSrc]; 
     
@@ -502,7 +511,6 @@ function startGame() {
     levelSelectScreen.classList.remove('active');
     gameOverScreen.classList.remove('active');
     
-    // 🎵 NOVO: Inicia a música do nível atual
     if (currentBGM) {
         currentBGM.play().catch(e => console.log("Música do nível não iniciada."));
     }
@@ -511,60 +519,85 @@ function startGame() {
     gameRunning = true;
     gameOver = false;
     
-    // Limpa o tempo acumulado para que a lógica comece imediatamente
     lastTime = 0; 
     accumulatedTime = 0; 
-    
-    // O loop `draw` já está rodando, não precisamos chamá-lo novamente
 }
+
+/** ⭐️ NOVA LÓGICA: Verifica se a rolagem chegou ao fim e revela a imagem. */
+function checkScrollAndRevealImage() {
+    // Verifica se o scroll está no final (com uma pequena margem de erro)
+    const isScrolledToBottom = (victoryText.scrollHeight - victoryText.scrollTop) <= victoryText.clientHeight + 1;
+    
+    if (isScrolledToBottom && !imageRevealed) {
+        // Remove o monitoramento após a revelação
+        victoryText.removeEventListener('scroll', checkScrollAndRevealImage);
+        
+        // Revela a imagem
+        victoryCatImg.style.opacity = 1;
+        imageRevealed = true;
+    }
+}
+
 
 function endLevel() {
     gameRunning = false;
 
-    // NOVO: Pausa a música e toca o SFX de vitória
     stopBGM(); 
     sfxVictory.play();
 
     spawnConfetti();
     drawConfetti(); 
     
-    // Remove o `animationId` do game loop para que o confetti rode sozinho
     if (animationId) {
         cancelAnimationFrame(animationId);
         animationId = null;
     }
 
     const settings = LEVEL_SETTINGS[currentLevel - 1];
-    
     const isFinalLevel = currentLevel === LEVEL_SETTINGS.length;
-    victoryCatImg.style.display = isFinalLevel ? 'none' : 'block';
-
-    if (!isFinalLevel) { 
-        unlockedLevel = Math.max(unlockedLevel, currentLevel + 1);
-        
-        victoryText.textContent = settings.message;
-        victoryText.style.color = '#00ff7f'; 
-        victoryText.style.fontWeight = 'bold';
-        victoryText.style.textShadow = '2px 2px 4px #000';
-        
-        levelCompletedScreen.classList.add('active');
-        
+    
+    // --- 1. CONFIGURAÇÃO DA IMAGEM ---
+    if (isFinalLevel) {
+        victoryCatImg.src = gregHappyImg.src; // gregfeliz.png para o Nível 5
     } else {
-        // MENSAGEM FINAL PARA O NÍVEL MÁXIMO
+        victoryCatImg.src = gregNormalImg.src; // greg.png para os outros
+    }
+    
+    // Esconde a imagem no início da tela de vitória
+    victoryCatImg.style.opacity = 0;
+    imageRevealed = false;
+    
+    // --- 2. CONFIGURAÇÃO DO TEXTO ---
+    if (isFinalLevel) {
+        // MENSAGEM FINAL PARA O NÍVEL MÁXIMO (Força rolagem)
         victoryText.textContent = FINAL_VICTORY_MESSAGE; 
         victoryText.style.color = '#fff'; 
         victoryText.style.fontWeight = 'normal';
         victoryText.style.textShadow = 'none';
 
-        levelCompletedScreen.classList.add('active');
+    } else {
+        // Mensagem de nível normal concluído
+        unlockedLevel = Math.max(unlockedLevel, currentLevel + 1);
+        victoryText.textContent = settings.message;
+        victoryText.style.color = '#00ff7f'; 
+        victoryText.style.fontWeight = 'bold';
+        victoryText.style.textShadow = '2px 2px 4px #000';
     }
+    
+    // --- 3. MONITORAMENTO DE ROLAGEM ---
+    // Adiciona o listener para monitorar a rolagem
+    victoryText.addEventListener('scroll', checkScrollAndRevealImage);
+    
+    // Tenta revelar imediatamente caso não haja rolagem (texto curto)
+    setTimeout(checkScrollAndRevealImage, 100); 
+
+    levelCompletedScreen.classList.add('active');
 }
 
 function endGame() {
     gameRunning = false;
     gameOver = true;
 
-    // NOVO: Pausa a música e toca o SFX de derrota
     stopBGM(); 
     sfxGameOver.play(); 
 
@@ -573,7 +606,6 @@ function endGame() {
     spawnConfetti();
     drawConfetti();
     
-    // Remove o `animationId` do game loop para que o confetti rode sozinho
     if (animationId) {
         cancelAnimationFrame(animationId);
         animationId = null;
@@ -617,7 +649,7 @@ function drawBackground() {
     const imgToDraw = bgImg; 
     
     if (!imgToDraw || !imgToDraw.complete || imgToDraw.naturalWidth === 0) {
-        ctx.fillStyle = currentGroundColor; // Fallback para a cor do chão
+        ctx.fillStyle = currentGroundColor; 
         ctx.fillRect(0, 0, canvas.width, canvas.height); 
         return;
     }
@@ -631,7 +663,6 @@ function drawBackground() {
     }
     
     const offsetY = 0; 
-    // Garante que o fundo role apenas se o jogo estiver rodando
     if (gameRunning) {
         bgX -= pipeSpeed * (bgSpeed / 2.25); 
     }
@@ -647,7 +678,6 @@ function drawBackground() {
 function drawCat() {
     ctx.save();
     ctx.translate(cat.x + cat.width/2, cat.y + cat.height/2);
-    // Inclina o gatinho baseado na velocidade
     ctx.rotate(Math.min(Math.PI/2, Math.max(-Math.PI/4, cat.velocity * 0.05)));
     ctx.drawImage(catImg, -cat.width/2, -cat.height/2, cat.width, cat.height);
     ctx.restore();
@@ -655,7 +685,7 @@ function drawCat() {
 
 function drawPipes() {
     const PIPE_BODY_COLOR = currentPipeColor; 
-    const PAW_CAP_COLOR = currentPipeCapColor;   // Usa a cor da tampa do nível
+    const PAW_CAP_COLOR = currentPipeCapColor;   
     const PAW_CAP_HEIGHT = 20;         
     
     pipes.forEach(pipe => {
@@ -679,7 +709,6 @@ function drawPipes() {
 
 /* ---------------------------- Colisões ---------------------------- */
 function checkCollision() {
-    // Colisão com o chão (20px de altura) ou teto
     if(cat.y + cat.height > canvas.height-20 || cat.y < 0) return true;
     
     for(const pipe of pipes){
@@ -703,7 +732,6 @@ function updateGameLogic() {
             pipe.passed = true;
             scoreDisplay.textContent = `Pontos: ${score}`;
 
-            // 🎵 Toca o som de ponto
             sfxPoint.currentTime = 0; 
             sfxPoint.play().catch(e => {}); 
             
@@ -723,7 +751,7 @@ function updateGameLogic() {
 }
 
 
-/* ---------------------------- Loop Principal (CORRIGIDO E FIXO) ---------------------------- */
+/* ---------------------------- Loop Principal (FIXO) ---------------------------- */
 function draw(currentTime) {
     
     if (gameRunning) {
@@ -732,7 +760,6 @@ function draw(currentTime) {
         let deltaTime = currentTime - lastTime;
         lastTime = currentTime;
         
-        // Limita o delta em 250ms para evitar que o jogo "salte" frames após uma longa pausa
         if (deltaTime > 250) deltaTime = 250; 
         
         accumulatedTime += deltaTime;
@@ -741,7 +768,6 @@ function draw(currentTime) {
         while (accumulatedTime >= TIME_STEP) {
             updateGameLogic(); 
             
-            // Colisão é verificada após a atualização da lógica
             if(checkCollision()) {
                 endGame();
                 accumulatedTime = 0; 
@@ -751,21 +777,17 @@ function draw(currentTime) {
             accumulatedTime -= TIME_STEP;
             updateCount++;
             
-            // Proteção para evitar loop infinito
             if (updateCount > 10) { 
                 accumulatedTime = 0; 
                 break; 
             }
         }
     } else {
-        // Se o jogo não estiver rodando (Menu/Game Over),
-        // resetamos o tempo para a próxima partida e atualizamos o lastTime para evitar saltos.
         accumulatedTime = 0;
         lastTime = currentTime; 
     }
 
     // --- 2. DESENHO (DRAWING) ---
-    // O desenho sempre ocorre, independentemente do estado de gameRunning
     ctx.clearRect(0,0,canvas.width,canvas.height);
     
     drawBackground();
@@ -778,11 +800,10 @@ function draw(currentTime) {
     drawCat();
 
     // --- 3. PRÓXIMO QUADRO (SEMPRE CHAMADO) ---
-    // O loop continua a rodar. A lógica interna (gameRunning) controla se a física é aplicada.
     animationId = requestAnimationFrame(draw);
 }
 
-/* ---------------------------- Confetti (Mantido) ---------------------------- */
+/* ---------------------------- Confetti ---------------------------- */
 let confetti = [];
 let confettiAnimationId = null;
 
@@ -797,7 +818,6 @@ function spawnConfetti(){
             color: ['#ff99aa','#ffcc00','#5c99ff'][Math.floor(Math.random()*3)]
         });
     }
-    // Garante que o loop do confetti comece se ainda não estiver rodando
     if (!confettiAnimationId) drawConfetti();
 }
 
@@ -812,7 +832,6 @@ function drawConfetti(){
         if(c.y>confCanvas.height) c.y=0; 
     });
     
-    // O loop do confetti só continua enquanto a tela de Game Over ou Vitória estiver ativa
     if(gameOver || levelCompletedScreen.classList.contains('active')) {
         confettiAnimationId = requestAnimationFrame(drawConfetti); 
     } else {
@@ -846,8 +865,7 @@ function initializeGame() {
     	startScreen.classList.add('active');
     }
     
-    // 🚀 NOVO: INICIAMOS O LOOP AQUI, APÓS O CARREGAMENTO DOS ASSETS
-    // O loop se auto-chama e controlará as animações e a lógica de jogo
+    // INICIAMOS O LOOP AQUI, APÓS O CARREGAMENTO DOS ASSETS
     animationId = requestAnimationFrame(draw);
 }
 
@@ -867,10 +885,11 @@ function assetLoaded(){
     }
 }
 
-
 catImg.onload = assetLoaded;
-victoryCatImgSource.onload = assetLoaded; 
+gregNormalImg.onload = assetLoaded; 
+gregHappyImg.onload = assetLoaded;
 loadBackgroundAssets(); 
+
 
 // LÓGICA DE REDIMENSIONAMENTO OTIMIZADA PARA CELULAR
 function resizeCanvas() {
@@ -884,10 +903,8 @@ function resizeCanvas() {
     confCanvas.height = newHeight;
 
     if (gameRunning) {
-        // Se estiver jogando, forçamos o fim para evitar bugs de canos
         endGame();
     } else {
-        // Se estiver nas telas de menu, apenas centralizamos o gatinho
         cat.y = canvas.height / 2 - cat.height / 2;
     }
 }
@@ -897,14 +914,10 @@ window.addEventListener('resize', resizeCanvas);
 document.addEventListener('DOMContentLoaded', () => {
     resizeCanvas();
     
-    // 🛑 REMOVEMOS A CHAMADA ANTECIPADA DE requestAnimationFrame(draw) DAQUI.
-    // O loop só inicia em initializeGame() após o carregamento dos assets.
-    
-    // 🛑 GARANTIA DE INICIALIZAÇÃO (Mobile Fix) - Chama initializeGame se falhar
+    // GARANTIA DE INICIALIZAÇÃO (Mobile Fix) - Chama initializeGame se falhar
     setTimeout(() => {
         if (!gameInitialized) {
             console.warn("Forçando inicialização do jogo devido a falha no carregamento de assets.");
-            // Define totalAssets = assetsLoaded para que initializeGame rode
             totalAssets = assetsLoaded; 
             initializeGame(); 
         }
@@ -923,6 +936,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 </body>
-</html>
 </html>
 
