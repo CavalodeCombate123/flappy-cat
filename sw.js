@@ -1,8 +1,9 @@
-const CACHE_NAME = 'flappy-cat-cache-v2';
+const CACHE_NAME = 'flappy-cat-cache-v2'; // Versão do cache atualizada
 // Lista de arquivos que o Service Worker vai guardar (cache)
 const urlsToCache = [
   '/',
   'index.html',
+  'telainicio.png', 
   'pngwing.com.png',
   'world.png',
   'greg.png',
@@ -12,7 +13,9 @@ const urlsToCache = [
   'piscina.png',
   'deserto.png',
   'gregfeliz.png',
-  'Layane.png'
+  'Layane.png',
+  'noite.png',
+  'afuis-removebg-preview.png'
 ];
 
 // Evento de instalação: abre o cache e adiciona os arquivos da lista
@@ -41,4 +44,3 @@ self.addEventListener('fetch', event => {
     )
   );
 });
-
