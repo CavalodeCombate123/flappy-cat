@@ -30,8 +30,8 @@ body {
 /* Container do Jogo: Usa unidades de viewport para ser totalmente responsivo */
 #game-container {
     position: relative;
-    width: 99vw; /* 🚩 ALTERADO DE 95vw PARA 99vw */
-    height: 99vh; /* 🚩 ALTERADO DE 95vh PARA 99vh */
+    width: 99vw;
+    height: 99vh;
     max-width: 593px;
     max-height: 704px;
     margin: auto;
@@ -50,13 +50,12 @@ canvas {
     touch-action: none;
 }
 
-/* Overlay Tela Inicial e Game Over: Usa flexbox para centralizar tudo */
+/* Overlay Tela Inicial, Pause e Game Over: Usa flexbox para centralizar tudo */
 .screen-overlay {
     position: absolute;
     top:0; left:0;
     width: 100%;
     height: 100%;
-    /* MANTIDO: Fundo escuro para outras telas (Game Over, Select Level) */
     background: rgba(0,0,0,0.85); 
     color: white;
     display: flex;
@@ -67,42 +66,47 @@ canvas {
     border-radius: 8px;
     pointer-events: none;
     opacity: 0;
-    /* ⭐️ TRANSIÇÃO SUAVE (fade) */
     transition: opacity 0.4s; 
     z-index: 10;
-    /* ⭐️ NOVO: Garante que o fundo não se mova */
     background-size: cover; 
     background-position: center;
     background-repeat: no-repeat;
 }
 
-/* 🚩 NOVO ESTILO PARA A TELA INICIAL (COM FUNDO DE IMAGEM) */
+/* Estilo para a TELA DE PAUSE */
+#pause-screen {
+    /* Fundo um pouco menos opaco para dar a sensação de que o jogo está ali */
+    background: rgba(0,0,0,0.7); 
+}
+#pause-screen button {
+    margin-top: 30px !important;
+}
+
+
+/* TELA INICIAL: Estilo com fundo de imagem */
 #start-screen {
-    background-image: url('telainicio.png'); /* ⭐️ Usa a imagem de fundo */
-    background-color: #3f357f; /* Cor de fallback */
-    /* 🚩 ALTERADO: Mova o botão mais para cima (diminua o padding-bottom) */
+    background-image: url('telainicio.png'); 
+    background-color: #3f357f;
     justify-content: flex-end; 
-    padding-bottom: 30%; /* ⭐️ AUMENTADO PARA 30% PARA SUBIR O BOTÃO */
+    padding-bottom: 30%; 
     box-sizing: border-box;
 }
 
-/* 🚩 NOVO ESTILO: Esconde o texto da tela inicial */
 #start-screen h1, #start-screen p {
     display: none; 
 }
 
-/* 🚩 NOVO ESTILO: Cor específica para o botão da tela inicial */
 #start-screen button {
-    background: #6a5acd; /* Cor roxa mais escura, combinando com o fundo */
-    color: white; /* Texto branco */
-    border: 3px solid #b0c4de; /* Borda um pouco mais clara para destaque */
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.5); /* Sombra para o texto */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.5); /* Sombra para o botão */
+    background: #6a5acd; 
+    color: white; 
+    border: 3px solid #b0c4de; 
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 #start-screen button:hover {
-    background-color: #836cdc; /* Um pouco mais claro no hover */
+    background-color: #836cdc; 
     box-shadow: 0 6px 15px rgba(0,0,0,0.7);
-    transform: translateY(-2px); /* Efeito de elevação sutil */
+    transform: translateY(-2px); 
 }
 
 
@@ -135,7 +139,7 @@ canvas {
 }
 
 #level-select-screen button,
-.screen-overlay button { /* Este seletor afeta todos os botões que não são da #start-screen */
+.screen-overlay button {
     background: #ff99aa;
     color: #3d2b27;
     border: 3px solid #3d2b27;
@@ -147,10 +151,9 @@ canvas {
     width: 90%;
     max-width: 200px;
     margin-top: 10px;
-    line-height: 1.2; /* Para acomodar a pontuação */
+    line-height: 1.2;
 }
 
-/* 🏆 NOVO ESTILO: Texto menor para o High Score no botão */
 #level-select-screen .level-list button small {
     display: block;
     font-size: 0.7em;
@@ -182,6 +185,58 @@ canvas {
     padding: 5px 10px;
     border-radius: 5px;
     background: rgba(255,255,255,0.7);
+}
+
+/* ⏸️ Botão de Pause no Jogo */
+#pause-button {
+    position: absolute;
+    top: 10px;
+    right: 60px; /* Deslocado para não colidir com o Mute */
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    line-height: 40px;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+#pause-button:hover {
+    background: rgba(255, 255, 255, 0.9);
+}
+
+/* 🔊 Botão de Mute/Unmute */
+#mute-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 20;
+    background: rgba(255, 255, 255, 0.7);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+    line-height: 40px;
+    padding: 0;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+#mute-button:hover {
+    background: rgba(255, 255, 255, 0.9);
 }
 
 /* Mensagem de Nível Concluído (usada como um container de vitória agora) */
@@ -257,32 +312,6 @@ canvas {
     box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.75);
     transform: translate(2px, 2px);
 }
-
-/* 🔊 Botão de Mute/Unmute */
-#mute-button {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    z-index: 20;
-    background: rgba(255, 255, 255, 0.7);
-    border: none;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    font-size: 1.5rem;
-    line-height: 40px;
-    padding: 0;
-    cursor: pointer;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background-color 0.2s;
-}
-
-#mute-button:hover {
-    background: rgba(255, 255, 255, 0.9);
-}
 </style>
 </head>
 <body>
@@ -292,16 +321,25 @@ canvas {
 
     <div id="score-display">Pontos: 0</div>
 
+    <button id="pause-button" onclick="togglePause()" style="display:none">⏸️</button>
     <button id="mute-button" onclick="toggleMute()">🔊</button>
 
     <div id="start-screen" class="screen-overlay">
         <button onclick="showLevelSelect()">SELECIONAR NÍVEL</button>
     </div>
+    
     <div id="level-select-screen" class="screen-overlay">
         <h1>Escolha a Fase</h1>
         <p>Complete a fase atual para desbloquear a próxima!</p>
         <div class="level-list" id="level-list">
         </div>
+    </div>
+    
+    <div id="pause-screen" class="screen-overlay">
+        <h1>PAUSADO</h1>
+        <p>Pressione 'P' ou clique para continuar</p>
+        <button onclick="event.stopPropagation(); togglePause()">CONTINUAR (3s)</button>
+        <button onclick="event.stopPropagation(); showLevelSelect()">VOLTAR PARA O MENU</button>
     </div>
 
     <div id="game-over-screen" class="screen-overlay">
@@ -328,11 +366,12 @@ const confCtx = confCanvas.getContext('2d');
 const startScreen = document.getElementById('start-screen');
 const levelSelectScreen = document.getElementById('level-select-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
+const pauseScreen = document.getElementById('pause-screen'); 
 const scoreDisplay = document.getElementById('score-display');
 const finalScoreText = document.getElementById('final-score');
 const muteButton = document.getElementById('mute-button'); 
+const pauseButton = document.getElementById('pause-button'); 
 
-// Elementos da Tela de Vitória
 const levelCompletedScreen = document.getElementById('level-completed-message');
 const victoryText = document.getElementById('victory-text');
 const victoryCatImg = document.getElementById('victory-cat'); 
@@ -345,9 +384,8 @@ let imageRevealed = false;
 const pipeWidth = 70; 
 const pipeInterval = 120; 
 const initialDelay = 80; 
-const pointsToCompleteLevel = 10; // Mantido para os níveis de fase
+const pointsToCompleteLevel = 10; 
 
-// ⏱️ CONFIGURAÇÕES DE TEMPO PARA LOOP FIXO (60 FPS)
 const FRAME_RATE = 60; 
 const TIME_STEP = 1000 / FRAME_RATE; 
 
@@ -363,7 +401,12 @@ let gameRunning = false;
 let gameOver = false;
 let currentLevel = 0; 
 
-// ➕ NOVO: Array para gerenciar os feedbacks visuais de ponto
+let isPaused = false; 
+
+let isStarting = false;
+const START_DELAY_TIME = 3000; 
+let startingTimer = START_DELAY_TIME; 
+
 let pointFeedbacks = []; 
 
 
@@ -383,7 +426,6 @@ const EASY_MODE_SETTINGS = {
     maxGap: 280
 };
 
-// MENSAGEM FINAL DE VITÓRIA (Longa para forçar a rolagem)
 const FINAL_VICTORY_MESSAGE = `
 
 Parabéns, você completou o jogo!
@@ -402,7 +444,6 @@ E o mais importante, FELIZ ANIVERSÁRIO!!!
 
 `;
 
-// 🚩 LEVEL_SETTINGS: Adicionando o Modo Infinito (Nível 6)
 const LEVEL_SETTINGS = [
     {
         name: "Gatinhos",
@@ -459,7 +500,6 @@ const LEVEL_SETTINGS = [
         isInfinite: false,
         ...EASY_MODE_SETTINGS
     },
-    // 🚩 NOVO: MODO INFINITO
     {
         name: "INFINITO ♾️",
         message: "O desafio nunca termina! Seu objetivo é o recorde!",
@@ -468,26 +508,23 @@ const LEVEL_SETTINGS = [
         groundColor: '#34495e',
         pipeCapColor: '#f1c40f',
         bgmSrc: 'sfx/bgm_nivel5.mp3',
-        isInfinite: true, // Chave para a nova lógica
+        isInfinite: true, 
         ...EASY_MODE_SETTINGS
     }
 ];
 
 /* ---------------------------- ÁUDIO ---------------------------- */
-// Objetos para SFX (Efeitos Sonoros)
 const sfxJump = new Audio('sfx/jump.wav');
 const sfxGameOver = new Audio('sfx/gameOver.wav');
 const sfxVictory = new Audio('sfx/victory.wav');
 const sfxPoint = new Audio('sfx/point.wav'); 
 
-// Objeto para armazenar as músicas de fundo por nível
 let bgMusics = {}; 
 let currentBGM = null; 
 let isMuted = false; 
 
 const bgmSrcList = LEVEL_SETTINGS.map(s => s.bgmSrc); 
 
-// Lista de assets de áudio para contagem (SFX + Músicas)
 const audioAssets = [sfxJump, sfxGameOver, sfxVictory, sfxPoint]; 
 bgmSrcList.forEach(src => {
     const audio = new Audio(src);
@@ -496,16 +533,12 @@ bgmSrcList.forEach(src => {
     audioAssets.push(audio);
 });
 
-
-// Assets Visuais
+/* ---------------------------- Assets Visuais ---------------------------- */
 const cat = { x: 50, y: canvas.height/2, width: 55, height: 55, velocity:0, radius: 20 }; 
 const catImg = new Image();
 catImg.src = 'pngwing.com.png'; 
-
-// ➕ NOVO: Imagem para Feedback de Ponto
 const sfxPointImg = new Image();
 sfxPointImg.src = 'afuis-removebg-preview.png'; 
-
 
 let bgImgs = {}; 
 const bgSrcList = LEVEL_SETTINGS.map(s => s.bgSrc);
@@ -513,7 +546,6 @@ let bgImg = null;
 let bgX = 0; 
 let bgSpeed = 0.5; 
 
-// Imagens para a Tela de Vitória
 const gregHappyImg = new Image();
 gregHappyImg.src = 'gregfeliz.png'; 
 const gregNormalImg = new Image();
@@ -526,9 +558,7 @@ let currentGroundColor = '#8fbc8f';
 let currentPipeCapColor = '#FFFFFF';
 
 /* ---------------------------- 🏆 HIGH SCORE LOCAL ---------------------------- */
-
 function getHighScore(level) {
-    // Retorna o recorde salvo para o nível, ou 0 se não houver
     return parseInt(localStorage.getItem(`flappyCatHighScore_L${level}`) || 0);
 }
 
@@ -541,28 +571,20 @@ function saveHighScore(level, score) {
     return currentHighScore;
 }
 
-/* ---------------------------- TELA DE NÍVEL (REVISADA) ---------------------------- */
-
+/* ---------------------------- TELA DE NÍVEL ---------------------------- */
 function renderLevelSelect() {
     levelListContainer.innerHTML = '';
     
-    const maxPhaseLevel = LEVEL_SETTINGS.length - 1; // 5
-    const infiniteLevelNumber = LEVEL_SETTINGS.length; // 6
+    const maxPhaseLevel = LEVEL_SETTINGS.length - 1;
+    const infiniteLevelNumber = LEVEL_SETTINGS.length;
 
-    // 1. Renderiza os Níveis de Fase (1 a 5)
     LEVEL_SETTINGS.slice(0, maxPhaseLevel).forEach((level, index) => { 
         const levelNumber = index + 1;
         const button = document.createElement('button');
-        
         const currentHighScore = getHighScore(levelNumber);
         
-        // 🏆 EXIBIÇÃO DO HIGH SCORE NA SELEÇÃO DE NÍVEL
         button.innerHTML = `Nível ${levelNumber}: ${level.name}<br><small>Recorde: ${currentHighScore}</small>`;
-
-        if (levelNumber === currentLevel) {
-            button.style.backgroundColor = '#ffcc00';
-        }
-
+        if (levelNumber === currentLevel) button.style.backgroundColor = '#ffcc00';
         button.onclick = () => selectLevel(levelNumber);
 
         if (levelNumber > unlockedLevel) {
@@ -572,16 +594,13 @@ function renderLevelSelect() {
         levelListContainer.appendChild(button);
     });
     
-    // 2. Renderiza o Modo Infinito (Nível 6)
     const infiniteSettings = LEVEL_SETTINGS[infiniteLevelNumber - 1];
-    
     const infiniteButton = document.createElement('button');
     const infiniteHighScore = getHighScore(infiniteLevelNumber);
     
     infiniteButton.innerHTML = `MODO ${infiniteSettings.name}<br><small>Recorde: ${infiniteHighScore}</small>`;
     
-    // 🚩 O modo infinito só é desbloqueado após completar o último nível de fase (Nível 5)
-    if (unlockedLevel < maxPhaseLevel + 1) { // Verifica se Nível 5 está desbloqueado
+    if (unlockedLevel < maxPhaseLevel + 1) { 
         infiniteButton.disabled = true;
         infiniteButton.innerHTML = `MODO ${infiniteSettings.name}<br><small>Complete o Nível ${maxPhaseLevel} para desbloquear</small>`;
     }
@@ -595,19 +614,21 @@ function renderLevelSelect() {
 }
 
 function showLevelSelect() {
-    // Paramos o loop de jogo se estiver ativo
     if (animationId) {
         cancelAnimationFrame(animationId);
         animationId = null;
     }
     stopBGM();
 
-    // ⭐️ Transição suave por CSS (basta manipular a classe)
     startScreen.classList.remove('active');
     gameOverScreen.classList.remove('active');
     levelCompletedScreen.classList.remove('active');
+    pauseScreen.classList.remove('active');
+    
     levelSelectScreen.classList.add('active');
 
+    pauseButton.style.display = 'none'; 
+    
     if (currentLevel === 0) {
         currentLevel = 1;
     }
@@ -638,16 +659,40 @@ function selectLevel(levelNumber) {
 
 /* ---------------------------- Funções Auxiliares ---------------------------- */
 function handleJump() {
-    if(!gameRunning) return;
-
+    if(!gameRunning) return; 
+    
     sfxJump.currentTime = 0;
     sfxJump.play().catch(e => {}); 
 
     cat.velocity = jumpForce;
 }
 
-/* ---------------------------- Funções de Controle de Áudio ---------------------------- */
+function togglePause() {
+    if (!gameRunning && !isStarting && !isPaused) return; 
 
+    // Pausar
+    if (gameRunning || isStarting) {
+        isPaused = true;
+        gameRunning = false;
+        isStarting = false;
+        pauseScreen.classList.add('active');
+        stopBGM();
+        cat.velocity = 0;
+    } 
+    // Retomar
+    else if (isPaused) {
+        isPaused = false;
+        pauseScreen.classList.remove('active');
+        isStarting = true; 
+        startingTimer = START_DELAY_TIME; 
+        
+        if (currentBGM && !isMuted) {
+             currentBGM.play().catch(e => {});
+        }
+    }
+}
+
+/* ---------------------------- Funções de Controle de Áudio ---------------------------- */
 function toggleMute() {
     isMuted = !isMuted;
     muteButton.textContent = isMuted ? '🔇' : '🔊';
@@ -659,7 +704,7 @@ function toggleMute() {
     if (isMuted && currentBGM) {
         currentBGM.pause();
     } 
-    else if (!isMuted && gameRunning && currentBGM) {
+    else if (!isMuted && (gameRunning || isStarting) && currentBGM) { 
         currentBGM.play().catch(e => {});
     }
 }
@@ -673,34 +718,53 @@ function stopBGM() {
 
 /* Eventos de controle */
 document.addEventListener('keydown', e => { 
+    // CORREÇÃO FINAL: O pulo agora só funciona se 'gameRunning' for true.
     if (gameRunning && (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W')) {
         e.preventDefault();
         handleJump();
     }
+    if (e.key === 'p' || e.key === 'P') {
+        if (gameRunning || isPaused || isStarting) {
+             togglePause();
+        }
+    }
 });
 canvas.addEventListener('mousedown', () => { 
+    // CORREÇÃO FINAL: O pulo agora só funciona se 'gameRunning' for true.
     if(gameRunning) handleJump();
 });
 canvas.addEventListener('touchstart', e => { 
+    // CORREÇÃO FINAL: O pulo agora só funciona se 'gameRunning' for true.
     if(gameRunning) {
         e.preventDefault();
         handleJump();
     }
 }, {passive:false});
+pauseScreen.addEventListener('click', togglePause);
 
 
 /* ---------------------------- Estado do Jogo ---------------------------- */
 function startGame() {
     levelSelectScreen.classList.remove('active');
     gameOverScreen.classList.remove('active');
+    pauseScreen.classList.remove('active');
+
+    pauseButton.style.display = 'flex';
 
     if (currentBGM && !isMuted) {
         currentBGM.play().catch(e => console.log("Música do nível não iniciada."));
     }
 
     resetGameData();
-    gameRunning = true;
     gameOver = false;
+    isPaused = false;
+    
+    isStarting = true;
+    startingTimer = START_DELAY_TIME;
+    gameRunning = false; 
+    
+    cat.y = canvas.height/2; 
+    cat.velocity = 0;
 
     lastTime = 0;
     accumulatedTime = 0;
@@ -724,21 +788,20 @@ function checkScrollAndRevealImage() {
 function endLevel() {
     const settings = LEVEL_SETTINGS[currentLevel - 1];
     
-    // 🚩 NOVO: O modo Infinito não tem conclusão de nível.
     if (settings.isInfinite) {
-        // Se for o modo infinito, ele só para quando colide (endGame)
         return; 
     }
+    
+    pauseButton.style.display = 'none';
 
     gameRunning = false;
-
+    isStarting = false;
+    isPaused = false;
+    
     stopBGM();
     sfxVictory.play();
     
-    // 🏆 SALVA O HIGH SCORE AO COMPLETAR O NÍVEL (Garantia)
     saveHighScore(currentLevel, score);
-
-    // Salva o nível desbloqueado
     localStorage.setItem('flappyCatUnlockedLevel', unlockedLevel);
 
     spawnConfetti();
@@ -749,9 +812,8 @@ function endLevel() {
         animationId = null;
     }
 
-    const isFinalLevel = currentLevel === LEVEL_SETTINGS.length - 1; // Nível 5 é o último de fase
+    const isFinalLevel = currentLevel === LEVEL_SETTINGS.length - 1;
 
-    // --- 1. CONFIGURAÇÃO DA IMAGEM ---
     if (isFinalLevel) {
         victoryCatImg.src = gregHappyImg.src; 
     } else {
@@ -761,14 +823,12 @@ function endLevel() {
     victoryCatImg.style.opacity = 0;
     imageRevealed = false;
 
-    // --- 2. CONFIGURAÇÃO DO TEXTO ---
     if (isFinalLevel) {
         victoryText.textContent = FINAL_VICTORY_MESSAGE; 
         victoryText.style.color = '#fff'; 
         victoryText.style.fontWeight = 'normal';
         victoryText.style.textShadow = 'none';
 
-        // Desbloqueia o modo infinito (Nível 6)
         unlockedLevel = Math.max(unlockedLevel, currentLevel + 1);
         localStorage.setItem('flappyCatUnlockedLevel', unlockedLevel);
 
@@ -781,7 +841,6 @@ function endLevel() {
         victoryText.style.textShadow = '2px 2px 4px #000';
     }
 
-    // --- 3. MONITORAMENTO DE ROLAGEM ---
     victoryText.addEventListener('scroll', checkScrollAndRevealImage);
     setTimeout(checkScrollAndRevealImage, 100); 
 
@@ -789,17 +848,19 @@ function endLevel() {
 }
 
 function endGame() {
+    pauseButton.style.display = 'none';
+
     gameRunning = false;
+    isStarting = false;
+    isPaused = false;
     gameOver = true;
 
     stopBGM(); 
     sfxGameOver.play(); 
     
-    // 🏆 SALVA E OBTÉM O HIGH SCORE PARA EXIBIÇÃO
     const savedHighScore = saveHighScore(currentLevel, score);
     const settings = LEVEL_SETTINGS[currentLevel - 1];
 
-    // 🏆 EXIBIÇÃO DO HIGH SCORE NO GAME OVER
     finalScoreText.innerHTML = `Pontuação Final: ${score} (${settings.name})<br>Recorde do Nível: ${savedHighScore}`;
     
     gameOverScreen.classList.add('active');
@@ -813,7 +874,7 @@ function endGame() {
 }
 
 function resetGameData() {
-    cat.y = canvas.height/2;
+    cat.y = canvas.height/2; 
     cat.velocity = 0;
     pipes = [];
     score = 0;
@@ -822,7 +883,6 @@ function resetGameData() {
 
     bgX = 0;
     
-    // ➕ Limpa feedbacks de ponto
     pointFeedbacks = [];
 
     scoreDisplay.textContent = `Pontos: 0`;
@@ -866,7 +926,7 @@ function drawBackground() {
     }
 
     const offsetY = 0;
-    if (gameRunning) {
+    if (gameRunning) { 
         bgX -= pipeSpeed * (bgSpeed / 2.25);
     }
 
@@ -881,7 +941,11 @@ function drawBackground() {
 function drawCat() {
     ctx.save();
     ctx.translate(cat.x + cat.width/2, cat.y + cat.height/2);
-    ctx.rotate(Math.min(Math.PI/2, Math.max(-Math.PI/4, cat.velocity * 0.05)));
+    if (gameRunning) {
+        ctx.rotate(Math.min(Math.PI/2, Math.max(-Math.PI/4, cat.velocity * 0.05)));
+    } else {
+        ctx.rotate(0);
+    }
     ctx.drawImage(catImg, -cat.width/2, -cat.height/2, cat.width, cat.height);
     ctx.restore();
 }
@@ -896,13 +960,11 @@ function drawPipes() {
         const bottomY = pipe.top + pipe.gap;
         const bottomHeight = canvas.height - bottomY - 20;
 
-        // --- CANO SUPERIOR ---
         ctx.fillStyle = PIPE_BODY_COLOR;
         ctx.fillRect(pipe.x, 0, pipeWidth, topHeight);
         ctx.fillStyle = PAW_CAP_COLOR;
         ctx.fillRect(pipe.x, topHeight - PAW_CAP_HEIGHT, pipeWidth, PAW_CAP_HEIGHT);
 
-        // --- CANO INFERIOR ---
         ctx.fillStyle = PIPE_BODY_COLOR;
         ctx.fillRect(pipe.x, bottomY, pipeWidth, bottomHeight);
         ctx.fillStyle = PAW_CAP_COLOR;
@@ -910,12 +972,11 @@ function drawPipes() {
     });
 }
 
-// ➕ NOVO: Desenha os feedbacks de ponto
 function drawPointFeedbacks() {
     const imgSize = 40; 
     pointFeedbacks.forEach(feedback => {
         ctx.save();
-        ctx.globalAlpha = feedback.opacity; // Aplica o fade-out
+        ctx.globalAlpha = feedback.opacity;
         ctx.drawImage(sfxPointImg, feedback.x, feedback.y, imgSize, imgSize);
         ctx.restore();
     });
@@ -933,6 +994,8 @@ function checkCircleRectangleCollision(circle, rect) {
 }
 
 function checkCollision() {
+    if (!gameRunning) return false; 
+    
     if(cat.y + cat.height > canvas.height-20 || cat.y < 0) return true;
 
     const catCenter = {
@@ -953,11 +1016,10 @@ function checkCollision() {
     return false;
 }
 
-/* ---------------------------- Lógica do Jogo e Loop Principal (REVISADA) ---------------------------- */
+/* ---------------------------- Lógica do Jogo e Loop Principal ---------------------------- */
 function updateGameLogic() {
-    cat.velocity += gravity;
-    cat.y += cat.velocity;
-
+    if (!gameRunning) return; 
+    
     const settings = LEVEL_SETTINGS[currentLevel - 1];
     const isInfiniteMode = settings.isInfinite;
 
@@ -972,15 +1034,13 @@ function updateGameLogic() {
             sfxPoint.currentTime = 0;
             sfxPoint.play().catch(e => {});
             
-            // ➕ Adiciona feedback de ponto
             pointFeedbacks.push({
-                x: pipe.x + pipeWidth, // Perto da borda do cano
-                y: cat.y, // Na altura do gato
+                x: pipe.x + pipeWidth,
+                y: cat.y,
                 opacity: 1,
-                velocity: -2 // Sobe lentamente
+                velocity: -2
             });
 
-            // 🚩 MODO INFINITO: A pontuação só chama endLevel se NÃO for o modo infinito.
             if (!isInfiniteMode && score >= pointsToCompleteLevel) {
                 endLevel();
             }
@@ -995,31 +1055,62 @@ function updateGameLogic() {
 
     pipeFrame++;
 
-    // ➕ Atualiza o movimento e o fade-out do feedback de ponto
     pointFeedbacks = pointFeedbacks.filter(feedback => {
         feedback.y += feedback.velocity; 
-        feedback.opacity -= 0.05; // Diminui a opacidade
-        return feedback.opacity > 0; // Remove quando for invisível
+        feedback.opacity -= 0.05; 
+        return feedback.opacity > 0;
     });
+}
+
+function applyCatPhysics() {
+    // CORREÇÃO FINAL: A física agora só é aplicada se 'gameRunning' for true.
+    // Isso impede qualquer movimento durante a contagem regressiva ('isStarting').
+    if (gameRunning) {
+        cat.velocity += gravity;
+        cat.y += cat.velocity;
+        
+        if(cat.y < 0) {
+            cat.y = 0;
+            cat.velocity = 0;
+        }
+    }
 }
 
 
 function draw(currentTime) {
+    if (lastTime === 0) lastTime = currentTime;
+    let deltaTime = currentTime - lastTime;
+    lastTime = currentTime;
 
-    if (gameRunning) {
-        if (lastTime === 0) lastTime = currentTime;
-        let deltaTime = currentTime - lastTime;
-        lastTime = currentTime;
+    if (deltaTime > 250) deltaTime = 250;
 
-        if (deltaTime > 250) deltaTime = 250;
-
-        accumulatedTime += deltaTime;
+    accumulatedTime += deltaTime;
+    
+    const isGameActive = gameRunning || isStarting;
+    if (isPaused) {
+        accumulatedTime = 0;
+        lastTime = currentTime; 
+    } else if (isGameActive) {
+        
+        if (isStarting) {
+            startingTimer -= deltaTime;
+            if (startingTimer <= 0) {
+                isStarting = false;
+                gameRunning = true; 
+                startingTimer = 0;
+                accumulatedTime = 0; 
+            }
+        }
 
         let updateCount = 0;
         while (accumulatedTime >= TIME_STEP) {
-            updateGameLogic();
+            // A física e a lógica do jogo só rodam quando gameRunning = true
+            if(gameRunning) {
+                applyCatPhysics(); 
+                updateGameLogic(); 
+            }
 
-            if(checkCollision()) {
+            if(gameRunning && checkCollision()) {
                 endGame();
                 accumulatedTime = 0;
                 break;
@@ -1038,9 +1129,10 @@ function draw(currentTime) {
         lastTime = currentTime;
     }
 
+
     ctx.clearRect(0,0,canvas.width,canvas.height);
     
-    drawBackground();
+    drawBackground(); 
 
     ctx.fillStyle = currentGroundColor;
     ctx.fillRect(0, canvas.height-20, canvas.width, 20);
@@ -1048,13 +1140,29 @@ function draw(currentTime) {
     drawPipes();
     drawCat();
 
-    // ➕ Desenha o feedback de ponto antes do chão, mas depois do gato
     drawPointFeedbacks();
+    
+    if (isStarting) {
+        const seconds = Math.ceil(startingTimer / 1000);
+        const display = seconds > 0 ? seconds : 'VAI!'; 
+        
+        ctx.save();
+        ctx.fillStyle = 'rgba(0,0,0,0.7)';
+        ctx.fillRect(0,0,canvas.width,canvas.height); 
+        
+        ctx.fillStyle = 'white';
+        ctx.font = `bold ${canvas.width * 0.2}px Arial`; 
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(display, canvas.width / 2, canvas.height / 2);
+        ctx.restore();
+    }
 
     animationId = requestAnimationFrame(draw);
 }
 
-/* ---------------------------- Confetti (Sem Alteração) ---------------------------- */
+/* ---------------------------- Confetti, Assets e Inicialização (Mantidos) ---------------------------- */
+
 let confetti = [];
 let confettiAnimationId = null;
 
@@ -1092,9 +1200,7 @@ function drawConfetti(){
 }
 
 
-/* ---------------------------- Gerenciamento de Assets (Otimizado com Promises) ---------------------------- */
 let gameInitialized = false; 
-// Função auxiliar para carregar uma única imagem
 function loadImage(src, container, key = null) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -1112,25 +1218,20 @@ function loadImage(src, container, key = null) {
 function loadAssets() {
     const assetPromises = [];
     
-    // 1. Imagens do Gato e Feedbacks
     assetPromises.push(loadImage(catImg.src, null));
     assetPromises.push(loadImage(sfxPointImg.src, null));
     assetPromises.push(loadImage(gregHappyImg.src, null));
     assetPromises.push(loadImage(gregNormalImg.src, null));
 
-    // 2. Imagens de Background dos Níveis
     bgSrcList.forEach(src => {
         assetPromises.push(loadImage(src, bgImgs, src));
     });
 
-    // 3. Imagens Especiais (Tela Inicial)
-    // 🚩 Garante que a imagem do fundo da tela inicial seja carregada, embora seu uso seja apenas em CSS
     assetPromises.push(loadImage('telainicio.png', null));
     
-    // 4. Áudio (Pré-carrega o metadata)
     audioAssets.forEach(audio => {
         assetPromises.push(new Promise(resolve => {
-            if (audio.readyState >= 2) { // 2 = HAVE_CURRENT_DATA
+            if (audio.readyState >= 2) { 
                 resolve();
             } else {
                 audio.addEventListener('canplaythrough', resolve, { once: true });
@@ -1143,18 +1244,26 @@ function loadAssets() {
     return Promise.all(assetPromises);
 }
 
-function initializeGame() {
-    const savedLevel = parseInt(localStorage.getItem('flappyCatUnlockedLevel') || 1);
-    unlockedLevel = Math.max(1, savedLevel);
-    
-    // Define o tamanho do canvas para caber no contêiner
+function resizeCanvas() {
     const containerRect = gameContainer.getBoundingClientRect();
     canvas.width = containerRect.width;
     canvas.height = containerRect.height;
     confCanvas.width = containerRect.width;
     confCanvas.height = containerRect.height;
+
+    if (!gameRunning && !isStarting) {
+        cat.y = canvas.height/2;
+    }
+}
+
+
+function initializeGame() {
+    const savedLevel = parseInt(localStorage.getItem('flappyCatUnlockedLevel') || 1);
+    unlockedLevel = Math.max(1, savedLevel);
     
-    // Inicializa o primeiro background visível
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas); 
+
     const initialSettings = LEVEL_SETTINGS[0];
     bgImg = bgImgs[initialSettings.bgSrc];
     currentPipeColor = initialSettings.pipeColor;
@@ -1163,7 +1272,6 @@ function initializeGame() {
     gameInitialized = true;
     startScreen.classList.add('active');
     
-    // Desenha o background inicial (para não ficar vazio)
     draw(0); 
 }
 
@@ -1173,10 +1281,10 @@ loadAssets()
     .catch(error => {
         console.error("Erro ao carregar assets:", error);
         alert("Erro ao carregar os recursos do jogo. Verifique se os arquivos (imagens e áudio) estão no local correto.");
-        // Tenta inicializar mesmo com erro, usando fallbacks de cor
         initializeGame();
     });
 
 </script>
 </body>
 </html>
+
