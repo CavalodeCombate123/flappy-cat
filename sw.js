@@ -8,13 +8,12 @@ const urlsToCache = [
   'world.png',
   'greg.png',
   'icone-512x512.png',
-  'aniversario.png',
   'gato.png',
   'piscina.png',
   'deserto.png',
   'gregfeliz.png',
   'Layane.png',
-  'noite.png',
+  'noite1.gif',
   'afuis-removebg-preview.png'
 ];
 
@@ -44,3 +43,4 @@ self.addEventListener('fetch', event => {
     )
   );
 });
+
