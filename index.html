@@ -12,13 +12,13 @@ body {
     overflow: hidden;
     font-family: Arial, sans-serif;
     
-    /* ------------------- OPÇÃO 1: CONTAIN COM REPETIÇÃO ------------------- */
-    background-image: url('noite.png'); 
-    background-size: contain;         /* ⬅️ NOVO: Garante que a imagem inteira caiba */
-    background-position: center;      /* Centraliza cada "bloco" de repetição */
-    background-repeat: repeat;        /* ⬅️ NOVO: Repete a imagem para cobrir a tela */
+   /* ------------------- OPÇÃO 1: Fundo com GIF Animado ------------------- */
+    background-image: url('noite1.gif'); /* ⬅️ Mude a URL aqui! */
+    background-size: cover;          /* ⬅️ Sugestão: 'cover' é melhor para preencher a tela */
+    background-position: center;     
+    background-repeat: no-repeat;    /* ⬅️ Sugestão: 'no-repeat' evita repetição do GIF */
     background-attachment: fixed;     
-    background-color: #1a1a3a;       /* Cor de fundo para preencher os espaços entre as repetições (se houver) */
+    background-color: #1a1a3a;      
     /* ------------------------------------------------------------------------- */
     
     display: flex;
@@ -1287,4 +1287,5 @@ loadAssets()
 </script>
 </body>
 </html>
+
 
