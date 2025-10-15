@@ -12,7 +12,7 @@ body {
     overflow: hidden;
     font-family: Arial, sans-serif;
     
-   /* ------------------- OPÇÃO 1: Fundo com GIF Animado ------------------- */
+ /* ------------------- OPÇÃO 1: Fundo com GIF Animado ------------------- */
     background-image: url('noite1.gif'); /* ⬅️ Mude a URL aqui! */
     background-size: cover;          /* ⬅️ Sugestão: 'cover' é melhor para preencher a tela */
     background-position: center;     
@@ -401,6 +401,9 @@ let gameRunning = false;
 let gameOver = false;
 let currentLevel = 0; 
 
+// --- [NOVA ALTERAÇÃO] --- Nova variável de estado para a animação de morte
+let isDying = false; 
+
 let isPaused = false; 
 
 let isStarting = false;
@@ -718,7 +721,6 @@ function stopBGM() {
 
 /* Eventos de controle */
 document.addEventListener('keydown', e => { 
-    // CORREÇÃO FINAL: O pulo agora só funciona se 'gameRunning' for true.
     if (gameRunning && (e.key === ' ' || e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W')) {
         e.preventDefault();
         handleJump();
@@ -730,11 +732,9 @@ document.addEventListener('keydown', e => {
     }
 });
 canvas.addEventListener('mousedown', () => { 
-    // CORREÇÃO FINAL: O pulo agora só funciona se 'gameRunning' for true.
     if(gameRunning) handleJump();
 });
 canvas.addEventListener('touchstart', e => { 
-    // CORREÇÃO FINAL: O pulo agora só funciona se 'gameRunning' for true.
     if(gameRunning) {
         e.preventDefault();
         handleJump();
@@ -758,6 +758,7 @@ function startGame() {
     resetGameData();
     gameOver = false;
     isPaused = false;
+    isDying = false; // --- [NOVA ALTERAÇÃO] --- Reseta o estado de morte
     
     isStarting = true;
     startingTimer = START_DELAY_TIME;
@@ -847,6 +848,10 @@ function endLevel() {
     levelCompletedScreen.classList.add('active');
 }
 
+
+// --- [NOVA ALTERAÇÃO] --- A função endGame foi simplificada
+// Agora ela apenas mostra a tela de Game Over, pois o som e o estado do jogo
+// são controlados no início da animação de morte.
 function endGame() {
     pauseButton.style.display = 'none';
 
@@ -854,9 +859,6 @@ function endGame() {
     isStarting = false;
     isPaused = false;
     gameOver = true;
-
-    stopBGM(); 
-    sfxGameOver.play(); 
     
     const savedHighScore = saveHighScore(currentLevel, score);
     const settings = LEVEL_SETTINGS[currentLevel - 1];
@@ -867,6 +869,7 @@ function endGame() {
     spawnConfetti();
     drawConfetti();
     
+    // O loop de animação é cancelado aqui para economizar recursos.
     if (animationId) {
         cancelAnimationFrame(animationId);
         animationId = null;
@@ -926,6 +929,7 @@ function drawBackground() {
     }
 
     const offsetY = 0;
+    // --- [NOVA ALTERAÇÃO] --- O fundo para de se mover quando o gato morre
     if (gameRunning) { 
         bgX -= pipeSpeed * (bgSpeed / 2.25);
     }
@@ -941,7 +945,8 @@ function drawBackground() {
 function drawCat() {
     ctx.save();
     ctx.translate(cat.x + cat.width/2, cat.y + cat.height/2);
-    if (gameRunning) {
+    // --- [NOVA ALTERAÇÃO] --- A rotação também funciona durante a animação de morte
+    if (gameRunning || isDying) {
         ctx.rotate(Math.min(Math.PI/2, Math.max(-Math.PI/4, cat.velocity * 0.05)));
     } else {
         ctx.rotate(0);
@@ -994,7 +999,8 @@ function checkCircleRectangleCollision(circle, rect) {
 }
 
 function checkCollision() {
-    if (!gameRunning) return false; 
+    // --- [NOVA ALTERAÇÃO] --- Não verifica colisão se o gato já está morrendo
+    if (!gameRunning || isDying) return false; 
     
     if(cat.y + cat.height > canvas.height-20 || cat.y < 0) return true;
 
@@ -1062,10 +1068,9 @@ function updateGameLogic() {
     });
 }
 
+// --- [NOVA ALTERAÇÃO] --- A física agora também se aplica durante a animação de morte
 function applyCatPhysics() {
-    // CORREÇÃO FINAL: A física agora só é aplicada se 'gameRunning' for true.
-    // Isso impede qualquer movimento durante a contagem regressiva ('isStarting').
-    if (gameRunning) {
+    if (gameRunning || isDying) {
         cat.velocity += gravity;
         cat.y += cat.velocity;
         
@@ -1090,7 +1095,7 @@ function draw(currentTime) {
     if (isPaused) {
         accumulatedTime = 0;
         lastTime = currentTime; 
-    } else if (isGameActive) {
+    } else if (isGameActive || isDying) { // --- [NOVA ALTERAÇÃO] --- O loop continua se isDying for true
         
         if (isStarting) {
             startingTimer -= deltaTime;
@@ -1102,18 +1107,34 @@ function draw(currentTime) {
             }
         }
 
+        // --- [NOVA ALTERAÇÃO] --- Lógica de atualização de física e jogo foi reestruturada
         let updateCount = 0;
         while (accumulatedTime >= TIME_STEP) {
-            // A física e a lógica do jogo só rodam quando gameRunning = true
-            if(gameRunning) {
-                applyCatPhysics(); 
-                updateGameLogic(); 
-            }
+            // A física do gato é sempre aplicada primeiro, dependendo do estado.
+            applyCatPhysics(); 
 
-            if(gameRunning && checkCollision()) {
-                endGame();
+            // A lógica de canos e pontos só roda se o jogo estiver ativo.
+            if (gameRunning) {
+                updateGameLogic();
+
+                // Se houver colisão, inicia a animação de morte.
+                if (checkCollision()) {
+                    gameRunning = false;
+                    isDying = true;
+                    stopBGM();
+                    sfxGameOver.play().catch(e => {});
+
+                    // Dá o "pulo" de morte para cima.
+                    cat.velocity = jumpForce;
+                }
+            }
+            
+            // Se a animação de morte estiver acontecendo, verifica se o gato caiu para fora da tela.
+            if (isDying && cat.y > canvas.height) {
+                isDying = false;
+                endGame(); // Só agora a tela de Game Over é chamada.
                 accumulatedTime = 0;
-                break;
+                break; // Sai do loop de atualização.
             }
 
             accumulatedTime -= TIME_STEP;
@@ -1158,7 +1179,9 @@ function draw(currentTime) {
         ctx.restore();
     }
 
-    animationId = requestAnimationFrame(draw);
+    if (animationId) { // Garante que não continue se já foi cancelado
+        animationId = requestAnimationFrame(draw);
+    }
 }
 
 /* ---------------------------- Confetti, Assets e Inicialização (Mantidos) ---------------------------- */
@@ -1287,5 +1310,3 @@ loadAssets()
 </script>
 </body>
 </html>
-
-
