@@ -14,7 +14,14 @@ const urlsToCache = [
   'gregfeliz.png',
   'Layane.png',
   'noite1.gif',
-  'afuis-removebg-preview.png'
+  'afuis-removebg-preview.png',
+  'skin1.png',
+  'skin2.png',
+  'skin3.png',
+  'skin4.png',
+  'skin5.png',
+  'skin6.png',
+  'skin7.png'
 ];
 
 // Evento de instalação: abre o cache e adiciona os arquivos da lista
@@ -43,4 +50,3 @@ self.addEventListener('fetch', event => {
     )
   );
 });
-
