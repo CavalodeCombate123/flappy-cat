@@ -1,5 +1,5 @@
 {
-  "name": "Gatinho Flappy",
+  "name": "Flappy Cat",
   "short_name": "Gatinho",
   "start_url": "index.html",
   "display": "standalone",
@@ -15,3 +15,4 @@
     }
   ]
 }
+
